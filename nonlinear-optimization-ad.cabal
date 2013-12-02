@@ -18,6 +18,8 @@ cabal-version:       >=1.10
 extra-source-files:
    README.md
    .travis.yml
+   samples/LinearRegression.hs
+   samples/galton.csv
 
 source-repository head
   type:     git
