@@ -17,6 +17,7 @@ build-type:          Simple
 cabal-version:       >=1.10
 extra-source-files:
    README.md
+   .travis.yml
 
 source-repository head
   type:     git
