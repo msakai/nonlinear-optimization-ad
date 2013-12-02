@@ -62,9 +62,7 @@ optimize params grad_tol initial f = do
       -- mf :: forall m. (PrimMonad m, Functor m) => PointMVector m -> m Double
       mf mx = do
         x <- readFromMVec mx
-        -- NOTE: Isn't there a way to compute only the result of the function?
-        let (y,_) = grad' f x
-        return y
+        return $ lowerFU f x
 
       -- mg :: forall m. (PrimMonad m, Functor m) => PointMVector m -> GradientMVector m -> m ()
       mg mx mret = do
