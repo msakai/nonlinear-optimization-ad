@@ -15,7 +15,7 @@ main = do
       -- hypothesis
       h [theta0,theta1] x = theta0 + theta1 * x
       -- cost function
-      cost theta = mse [(realToFrac x, realToFrac y) | (x,y) <- samples] (h theta)
+      cost theta = mse [(auto x, auto y) | (x,y) <- samples] (h theta)
       params   = CG.defaultParameters{ CG.printFinal = True, CG.printParams = True, CG.verbose = CG.Verbose }
       grad_tol = 0.0000001
   (theta, result, stat) <- CG.optimize params grad_tol [0,0] cost
