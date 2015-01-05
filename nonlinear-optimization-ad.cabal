@@ -2,7 +2,7 @@
 -- further documentation, see http://haskell.org/cabal/users-guide/
 
 name:                nonlinear-optimization-ad
-version:             0.2.0
+version:             0.2.1
 synopsis:            Wrapper of nonlinear-optimization package for using with AD package
 description:         Wrapper of nonlinear-optimization package for using with AD package
 homepage:            https://github.com/msakai/nonlinear-optimization-ad
