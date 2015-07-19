@@ -56,8 +56,6 @@ Executable LinearRegression
   HS-Source-Dirs: samples
   Build-Depends:
     base,
-    array,
     csv,
-    vector,
     nonlinear-optimization-ad
   Default-Language: Haskell2010
