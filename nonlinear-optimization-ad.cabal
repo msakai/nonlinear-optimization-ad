@@ -59,3 +59,5 @@ Executable LinearRegression
     csv,
     nonlinear-optimization-ad
   Default-Language: Haskell2010
+  Other-extensions:
+    TypeFamilies

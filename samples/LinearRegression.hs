@@ -1,3 +1,4 @@
+{-# LANGUAGE GADTs #-}
 {-# OPTIONS_GHC -Wall #-}
 module Main where
 
@@ -13,6 +14,7 @@ main = do
       -- hypothesis
       h [theta0,theta1] x = theta0 + theta1 * x
       -- cost function
+      -- cost :: (Fractional m, CG.Mode m, CG.Scalar m ~ Double) => [m] -> m]
       cost theta = mse [(CG.auto x, CG.auto y) | (x,y) <- samples] (h theta)
       params   = CG.defaultParameters{ CG.printFinal = True, CG.printParams = True, CG.verbose = CG.Verbose }
       grad_tol = 0.0000001

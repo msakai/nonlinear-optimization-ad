@@ -16,7 +16,7 @@ module Numeric.Optimization.Algorithms.HagerZhang05.AD
     -- * Technical parameters
   , TechParameters(..)
     -- * Re-export
-  , Mode (auto)
+  , Mode (..)
   ) where
 
 import Prelude hiding (mapM)
