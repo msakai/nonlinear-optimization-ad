@@ -3,9 +3,6 @@
 module Numeric.Optimization.Algorithms.HagerZhang05.AD
   ( -- * Main function
     optimize
-    -- ** Kinds of function types
-  , Simple
-  , Mutable
     -- * Result and statistics
   , Result(..)
   , Statistics(..)
