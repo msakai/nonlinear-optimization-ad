@@ -18,6 +18,8 @@ module Numeric.Optimization.Algorithms.HagerZhang05.AD
   , EstimateError(..)
     -- * Technical parameters
   , TechParameters(..)
+    -- * Re-export
+  , Mode (auto)
   ) where
 
 import Prelude hiding (mapM)
