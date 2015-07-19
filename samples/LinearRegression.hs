@@ -9,7 +9,7 @@ import qualified Text.CSV as CSV
 
 main :: IO ()
 main = do
-  Right csv <- CSV.parseCSVFromFile "galton.csv"
+  Right csv <- CSV.parseCSVFromFile "samples/galton.csv"
   let samples :: [(Double, Double)]
       samples = [(read parent, read child) | [child,parent] <- tail csv]      
       -- hypothesis

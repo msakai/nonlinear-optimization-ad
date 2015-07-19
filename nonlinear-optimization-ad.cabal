@@ -25,6 +25,11 @@ source-repository head
   type:     git
   location: git://github.com/msakai/nonlinear-optimization-ad.git
 
+flag BuildSamplePrograms
+  Description: build sample programs
+  Default: False
+  Manual: True
+
 library
   exposed-modules:     Numeric.Optimization.Algorithms.HagerZhang05.AD
   build-depends:
@@ -42,3 +47,18 @@ library
     TypeFamilies
     CPP
 
+-- Sample Programs
+
+Executable LinearRegression
+  If !flag(BuildSamplePrograms)
+    Buildable: False
+  Main-is: LinearRegression.hs
+  HS-Source-Dirs: samples
+  Build-Depends:
+    base,
+    array,
+    csv,
+    vector,
+    ad,
+    nonlinear-optimization-ad
+  Default-Language: Haskell2010
