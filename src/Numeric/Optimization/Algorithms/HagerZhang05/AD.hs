@@ -31,7 +31,7 @@ import Data.Reflection (Reifies)
 import Numeric.AD.Mode.Reverse
 import Numeric.AD.Internal.Reverse (Tape)
 #else
-import Numeric.AD.Type
+import Numeric.AD.Types
 #endif
 import Numeric.Optimization.Algorithms.HagerZhang05 hiding (optimize)
 import qualified Numeric.Optimization.Algorithms.HagerZhang05 as HagerZhang05
