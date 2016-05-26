@@ -17,6 +17,7 @@ build-type:          Simple
 cabal-version:       >=1.10
 extra-source-files:
    README.md
+   CHANGELOG.markdown
    .travis.yml
    samples/LinearRegression.hs
    samples/galton.csv
