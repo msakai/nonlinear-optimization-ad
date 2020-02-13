@@ -78,7 +78,7 @@ install:
 # any command which exits with a non-zero exit code causes the build to fail.
 script:
  - if [ -f configure.ac ]; then autoreconf -i; fi
- - cabal configure --enable-tests --enable-benchmarks -v2 $([ "$COVERAGE" = "1" ] && echo "--enable-library-coverage") # -v2 provides useful information for debugging
+ - cabal configure --enable-tests --enable-benchmarks --flags="BuildSamplePrograms" -v2 $([ "$COVERAGE" = "1" ] && echo "--enable-library-coverage") # -v2 provides useful information for debugging
  - cabal build   # this builds all libraries and executables (including tests/benchmarks)
  - cabal test
  - cabal check
