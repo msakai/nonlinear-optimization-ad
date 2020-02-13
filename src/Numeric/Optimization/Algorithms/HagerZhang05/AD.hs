@@ -1,5 +1,23 @@
 {-# LANGUAGE ScopedTypeVariables, Rank2Types, FlexibleContexts, CPP #-}
 {-# OPTIONS_GHC -Wall #-}
+-- 
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Numeric.Optimization.Algorithms.HagerZhang05.AD
+-- Copyright   :  (c) Masahiro Sakai 2013
+-- License     :  GPL
+--
+-- Maintainer  :  masahiro.sakai@gmail.com
+-- Stability   :  experimental
+-- Portability :  non-portable
+--
+-- This package enhance
+-- [nonlinear-optimization](https://hackage.haskell.org/package/nonlinear-optimization)'s
+-- usability by using
+-- [ad](https://hackage.haskell.org/package/nonlinear-optimization)'s
+-- automatic differentiaion.  You only need to specify a function to
+-- minimize and don't need to specify its gradient explicitly.
+-----------------------------------------------------------------------------
 module Numeric.Optimization.Algorithms.HagerZhang05.AD
   ( -- * Main function
     optimize
