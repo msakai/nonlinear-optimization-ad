@@ -1,16 +1,19 @@
-{-# LANGUAGE GADTs #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_GHC -Wall #-}
 module Main where
 
 import qualified Numeric.Optimization.Algorithms.HagerZhang05.AD as CG
 import Text.Printf
-import qualified Text.CSV as CSV
+import qualified Data.ByteString.Lazy as BS
+import qualified Data.Csv as Csv
+import qualified Data.Vector as V
 
 main :: IO ()
 main = do
-  Right csv <- CSV.parseCSVFromFile "samples/galton.csv"
-  let samples :: [(Double, Double)]
-      samples = [(read parent, read child) | [child,parent] <- tail csv]      
+  s <- BS.readFile "samples/galton.csv"
+  let Right rows = Csv.decode Csv.HasHeader s
+      samples :: [(Double, Double)]
+      samples = V.toList rows
       -- hypothesis
       h [theta0,theta1] x = theta0 + theta1 * x
       -- cost function

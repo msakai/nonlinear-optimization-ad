@@ -69,8 +69,10 @@ Executable LinearRegression
   HS-Source-Dirs: samples
   Build-Depends:
     base,
-    csv,
-    nonlinear-optimization-ad
+    bytestring,
+    cassava,
+    nonlinear-optimization-ad,
+    vector
   Default-Language: Haskell2010
   Other-extensions:
     TypeFamilies
