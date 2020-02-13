@@ -86,7 +86,7 @@ optimize params grad_tol initial f = do
       readFromVec :: S.Vector Double -> f Double
       readFromVec x = fmap (x S.!) template
 
-      mf :: forall m. (PrimMonad m, Functor m) => PointMVector m -> m Double
+      mf :: forall m. PrimMonad m => PointMVector m -> m Double
       mf mx = do
         x <- readFromMVec mx
 #if MIN_VERSION_ad(4,0,0)
@@ -95,12 +95,12 @@ optimize params grad_tol initial f = do
         return $ lowerFU f x
 #endif
 
-      mg :: forall m. (PrimMonad m, Functor m) => PointMVector m -> GradientMVector m -> m ()
+      mg :: forall m. PrimMonad m => PointMVector m -> GradientMVector m -> m ()
       mg mx mret = do
         x <- readFromMVec mx
         writeToMVec (grad f x) mret
 
-      mc :: (forall m. (PrimMonad m, Functor m) => PointMVector m -> GradientMVector m -> m Double)
+      mc :: (forall m. PrimMonad m => PointMVector m -> GradientMVector m -> m Double)
       mc mx mret = do
         x <- readFromMVec mx
         let (y,g) = grad' f x
