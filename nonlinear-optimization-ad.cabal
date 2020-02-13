@@ -26,6 +26,14 @@ extra-source-files:
    CHANGELOG.markdown
    samples/galton.csv
 
+tested-with: GHC==8.8.2
+tested-with: GHC==8.6.4
+tested-with: GHC==8.4.4
+tested-with: GHC==8.2.2
+tested-with: GHC==8.0.2
+tested-with: GHC==7.10.3
+tested-with: GHC==7.8.4
+
 source-repository head
   type:     git
   location: git://github.com/msakai/nonlinear-optimization-ad.git
