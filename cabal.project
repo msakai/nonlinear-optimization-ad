@@ -1,1 +1,2 @@
 packages: nonlinear-optimization-ad/
+          nonlinear-optimization-backprop/
