@@ -11,25 +11,25 @@ before_cache:
 
 matrix:
   include:
-    - env: CABALVER=3.0 GHCVER=7.8.4
+    - env: CABALVER=3.0 GHCVER=7.8.4 PROJECT_FILE=cabal_ghc7.project
       compiler: ": #GHC 7.8.4"
       addons: {apt: {packages: [cabal-install-3.0,ghc-7.8.4], sources: [hvr-ghc]}}
-    - env: CABALVER=3.0 GHCVER=7.10.3
+    - env: CABALVER=3.0 GHCVER=7.10.3 PROJECT_FILE=cabal_ghc7.project
       compiler: ": #GHC 7.10.3"
       addons: {apt: {packages: [cabal-install-3.0,ghc-7.10.3], sources: [hvr-ghc]}}
-    - env: CABALVER=3.0 GHCVER=8.0.2
+    - env: CABALVER=3.0 GHCVER=8.0.2 PROJECT_FILE=cabal.project
       compiler: ": #GHC 8.0.2"
       addons: {apt: {packages: [cabal-install-3.0,ghc-8.0.2], sources: [hvr-ghc]}}
-    - env: CABALVER=3.0 GHCVER=8.2.2
+    - env: CABALVER=3.0 GHCVER=8.2.2 PROJECT_FILE=cabal.project
       compiler: ": #GHC 8.2.2"
       addons: {apt: {packages: [cabal-install-3.0,ghc-8.2.2], sources: [hvr-ghc]}}
-    - env: CABALVER=3.0 GHCVER=8.4.4
+    - env: CABALVER=3.0 GHCVER=8.4.4 PROJECT_FILE=cabal.project
       compiler: ": #GHC 8.4.4"
       addons: {apt: {packages: [cabal-install-3.0,ghc-8.4.4], sources: [hvr-ghc]}}
-    - env: CABALVER=3.0 GHCVER=8.6.4
+    - env: CABALVER=3.0 GHCVER=8.6.4 PROJECT_FILE=cabal.project
       compiler: ": #GHC 8.6.4"
       addons: {apt: {packages: [cabal-install-3.0,ghc-8.6.4], sources: [hvr-ghc]}}
-    - env: CABALVER=3.0 GHCVER=8.8.2
+    - env: CABALVER=3.0 GHCVER=8.8.2 PROJECT_FILE=cabal.project
       compiler: ": #GHC 8.8.2"
       addons: {apt: {packages: [cabal-install-3.0,ghc-8.8.2], sources: [hvr-ghc]}}
 
@@ -46,8 +46,8 @@ install:
 # Here starts the actual work to be performed for the package under test;
 # any command which exits with a non-zero exit code causes the build to fail.
 script:
- - cabal v2-configure --enable-tests --enable-benchmarks --flags="BuildSamplePrograms" -v2 $([ "$COVERAGE" = "1" ] && echo "--enable-library-coverage") # -v2 provides useful information for debugging
- - cabal v2-build all  # this builds all libraries and executables (including tests/benchmarks)
+ - cabal v2-configure --project-file=$PROJECT_FILE --enable-tests --enable-benchmarks --flags="BuildSamplePrograms" -v2 $([ "$COVERAGE" = "1" ] && echo "--enable-library-coverage") # -v2 provides useful information for debugging
+ - cabal v2-build --project-file=$PROJECT_FILE all  # this builds all libraries and executables (including tests/benchmarks)
 #  - cabal v2-test all
- - cabal v2-sdist all  # tests that a source-distribution can be generated
+ - cabal v2-sdist --project-file=$PROJECT_FILE all  # tests that a source-distribution can be generated
 
