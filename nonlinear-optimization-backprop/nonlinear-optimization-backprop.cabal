@@ -54,6 +54,10 @@ library
     , reflection
     , mono-traversable
     , mtl
+  -- vinyl >=0.12.0 drops support for GHC-8.2 and below
+  if impl(ghc <8.4)
+    build-depends:
+      vinyl <0.12.0
   hs-source-dirs:      src
   default-language: Haskell2010
   other-extensions:
