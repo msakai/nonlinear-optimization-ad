@@ -31,8 +31,6 @@ tested-with: GHC==8.6.4
 tested-with: GHC==8.4.4
 tested-with: GHC==8.2.2
 tested-with: GHC==8.0.2
-tested-with: GHC==7.10.3
-tested-with: GHC==7.8.4
 
 source-repository head
   type:     git
@@ -46,7 +44,8 @@ flag BuildSamplePrograms
 library
   exposed-modules:     Numeric.Optimization.Algorithms.HagerZhang05.Backprop
   build-depends:
-      base >=4 && <5
+      -- GHC >=8.0
+      base >=4.9 && <5
     , backprop
     , nonlinear-optimization >=0.3.7 && <0.4
     , vector >= 0.5 && < 0.13
