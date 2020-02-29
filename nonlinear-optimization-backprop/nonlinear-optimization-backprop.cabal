@@ -2,7 +2,7 @@
 -- further documentation, see http://haskell.org/cabal/users-guide/
 
 name:                nonlinear-optimization-backprop
-version:             0.2.4
+version:             0.2.5
 synopsis:            Wrapper of nonlinear-optimization package for using with backprop package
 description:         This package enhances
                      <https://hackage.haskell.org/package/nonlinear-optimization nonlinear-optimization>'s
