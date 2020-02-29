@@ -7,7 +7,7 @@ synopsis:            Wrapper of nonlinear-optimization package for using with AD
 description:         This package enhance
                      [nonlinear-optimization](https://hackage.haskell.org/package/nonlinear-optimization)'s
                      usability by using
-                     [ad](https://hackage.haskell.org/package/nonlinear-optimization)'s
+                     [ad](https://hackage.haskell.org/package/ad)'s
                      automatic differentiaion. You only need to
                      specify a function to minimize and don't need to
                      specify its gradient explicitly.
