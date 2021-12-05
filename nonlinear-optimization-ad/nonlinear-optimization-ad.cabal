@@ -48,7 +48,7 @@ library
   build-depends:
       base >=4 && <5
     , nonlinear-optimization >=0.3.7 && <0.4
-    , ad >=3.4 && <4.5
+    , ad >=3.4 && <4.6
     , vector >= 0.5 && < 0.13
     , primitive
     , reflection
