@@ -48,7 +48,7 @@ library
       base >=4.9 && <5
     , backprop
     , nonlinear-optimization >=0.3.7 && <0.4
-    , vector >= 0.5 && < 0.13
+    , vector >= 0.5 && < 0.14
     , primitive
     , reflection
     , mono-traversable
