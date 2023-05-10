@@ -15,7 +15,7 @@
 # resolver:
 #  name: custom-snapshot
 #  location: "./custom-snapshot.yaml"
-resolver: lts-18.28
+resolver: nightly-2023-05-08
 
 # User packages to be built.
 # Various formats can be used as shown in the example below.
@@ -43,7 +43,10 @@ packages:
 # (e.g., acme-missiles-0.3)
 # extra-deps: []
 extra-deps:
-- nonlinear-optimization-0.3.12.1@sha256:2b4efff8549256c2a301d28c7c21edddab0d30a16add8b9dbb02343901bf1212,2634
+- git: https://github.com/msakai/nonlinear-optimization.git
+  commit: 3d1bc729df511ed7c6635a23fb191aef313e4583
+- git: https://github.com/msakai/backprop.git
+  commit: 24f4129a9c83f23016eafec7f75d1cce55f5a1b0
 
 # Override default flag values for local packages and extra-deps
 # flags: {}

@@ -7,7 +7,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ghc: ['8.4.4', '8.6.5', '8.8.4', '8.10.7', '9.0.2', '9.2.4']
+        ghc: ['8.4.4', '8.6.5', '8.8.4', '8.10.7', '9.0.2', '9.2.7', '9.4.5']
         os: [ubuntu-latest]
         include:
           - ghc: '8.4.4'
@@ -26,8 +26,11 @@ jobs:
           - ghc: '9.0.2'
             stack_yaml: 'stack-ghc-9.0.yaml'
             flags: ''
-          - ghc: '9.2.4'
+          - ghc: '9.2.7'
             stack_yaml: 'stack-ghc-9.2.yaml'
+            flags: ''
+          - ghc: '9.4.5'
+            stack_yaml: 'stack-ghc-9.4.yaml'
             flags: ''
     steps:
       - uses: actions/checkout@v2
