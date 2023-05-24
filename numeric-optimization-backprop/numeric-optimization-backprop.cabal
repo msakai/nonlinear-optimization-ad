@@ -1,0 +1,66 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.35.1.
+--
+-- see: https://github.com/sol/hpack
+
+name:           numeric-optimization-backprop
+version:        0.1.0.0
+synopsis:       Unified interface to various numerical optimization algorithms
+description:    Please see the README on GitHub at <https://github.com/msakai/nonlinear-optimization-ad>
+category:       Math, Algorithms, Optimisation, Optimization
+homepage:       https://github.com/msakai/numeric-optimization-backprop#readme
+bug-reports:    https://github.com/msakai/numeric-optimization-backprop/issues
+author:         Masahiro Sakai
+maintainer:     masahiro.sakai@gmail.com
+copyright:      Masahiro Sakai &lt;masahiro.sakai@gmail.com&gt;
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    CHANGELOG.md
+
+source-repository head
+  type: git
+  location: https://github.com/msakai/numeric-optimization-backprop
+
+library
+  exposed-modules:
+      Numeric.Optimization.Backprop
+  other-modules:
+      Paths_numeric_optimization_backprop
+  hs-source-dirs:
+      src
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
+  build-depends:
+      backprop
+    , base >=4.7 && <5
+    , data-default-class
+    , mono-traversable
+    , numeric-optimization >=0.1.0.0 && <0.2.0.0
+    , primitive
+    , reflection
+    , vector
+  default-language: Haskell2010
+
+test-suite numeric-optimization-backprop-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      IsClose
+      Paths_numeric_optimization_backprop
+  hs-source-dirs:
+      test
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      HUnit
+    , backprop
+    , base >=4.7 && <5
+    , containers
+    , data-default-class
+    , hspec
+    , microlens
+    , numeric-optimization >=0.1.0.0 && <0.2.0.0
+    , numeric-optimization-backprop
+  default-language: Haskell2010

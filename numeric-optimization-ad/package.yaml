@@ -1,0 +1,59 @@
+name:                numeric-optimization-ad
+version:             0.1.0.0
+github:              "msakai/numeric-optimization-ad"
+license:             BSD3
+author:              "Masahiro Sakai"
+maintainer:          "masahiro.sakai@gmail.com"
+copyright:           "Masahiro Sakai &lt;masahiro.sakai@gmail.com&gt;"
+
+extra-source-files:
+- README.md
+- CHANGELOG.md
+
+# Metadata used when publishing your package
+synopsis:            Unified interface to various numerical optimization algorithms
+category:            Math, Algorithms, Optimisation, Optimization
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Please see the README on GitHub at <https://github.com/msakai/nonlinear-optimization-ad>
+
+dependencies:
+- base >=4.7 && <5
+- data-default-class
+- numeric-optimization >=0.1.0.0 && <0.2.0.0
+- storable-tuple
+
+ghc-options:
+- -Wall
+- -Wcompat
+- -Widentities
+- -Wincomplete-record-updates
+- -Wincomplete-uni-patterns
+- -Wmissing-export-lists
+- -Wmissing-home-modules
+- -Wpartial-fields
+- -Wredundant-constraints
+
+library:
+  source-dirs: src
+  dependencies:
+  - ad
+  - primitive
+  - reflection
+  - vector
+
+tests:
+  numeric-optimization-ad-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - containers
+    - hspec
+    - HUnit
+    - numeric-optimization-ad

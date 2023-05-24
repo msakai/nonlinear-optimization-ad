@@ -38,12 +38,17 @@ resolver: lts-12.26
 packages:
 - nonlinear-optimization-ad
 - nonlinear-optimization-backprop
+- numeric-optimization
+- numeric-optimization-ad
+- numeric-optimization-backprop
 
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
 # extra-deps: []
 extra-deps:
 - nonlinear-optimization-0.3.12.1@sha256:2b4efff8549256c2a301d28c7c21edddab0d30a16add8b9dbb02343901bf1212,2634
+- git: https://github.com/msakai/lbfgs-hs.git
+  commit: 5bf9992f020f6e370a60755239060c02ad444a36
 
 # Override default flag values for local packages and extra-deps
 # flags: {}
