@@ -41,7 +41,7 @@ library
     , nonlinear-optimization >=0.3.7 && <0.4
     , primitive
     , storable-tuple
-    , vector
+    , vector >=0.12.0.2 && <0.14
   default-language: Haskell2010
 
 test-suite numeric-optimization-test
