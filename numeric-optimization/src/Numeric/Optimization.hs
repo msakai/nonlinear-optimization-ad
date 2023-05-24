@@ -1,4 +1,5 @@
 {-# OPTIONS_GHC -Wall #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 -----------------------------------------------------------------------------
 -- |
@@ -258,8 +259,13 @@ minimize_LBFGS params prob x0 = do
       evalFun :: () -> VSM.IOVector CDouble -> VSM.IOVector CDouble -> CInt -> CDouble -> IO CDouble
       evalFun _inst xvec gvec _n _step = do
         modifyIORef' evalCounter (+1)
+#if MIN_VERSION_vector(0,13,0)
+        x <- VG.unsafeFreeze (VSM.unsafeCoerceMVector xvec :: VSM.IOVector Double)
+        y <- grad'M prob x (Just (VSM.unsafeCoerceMVector gvec :: VSM.IOVector Double))
+#else
         x <- VG.unsafeFreeze (coerce xvec :: VSM.IOVector Double)
-        y <- grad'M prob x (Just (coerce gvec))
+        y <- grad'M prob x (Just (coerce gvec :: VSM.IOVector Double))
+#endif
         return (coerce y)
 
       progressFun :: () -> VSM.IOVector CDouble -> VSM.IOVector CDouble -> CDouble -> CDouble -> CDouble -> CDouble -> CInt -> CInt -> CInt -> IO CInt
@@ -269,7 +275,11 @@ minimize_LBFGS params prob x0 = do
           case callback params of
             Nothing -> return False
             Just f -> do
+#if MIN_VERSION_vector(0,13,0)
+              x <- VG.freeze (VSM.unsafeCoerceMVector xvec :: VSM.IOVector Double)
+#else
               x <- VG.freeze (coerce xvec :: VSM.IOVector Double)
+#endif
               f x
         return $ if shouldStop then 1 else 0
 
