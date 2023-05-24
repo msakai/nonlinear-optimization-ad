@@ -143,7 +143,7 @@ class IsProblem prob where
     case gret of
       Nothing -> return y
       Just gvec -> do
-        VG.iforM_ (grad prob x) $ \i v -> VGM.write gvec i v
+        VG.imapM_ (VGM.write gvec) (grad prob x)
         return y
 
   -- | Hessian of a function computed by 'func'
