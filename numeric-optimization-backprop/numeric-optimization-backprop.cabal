@@ -35,7 +35,7 @@ library
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
       backprop
-    , base >=4.7 && <5
+    , base >=4.12 && <5
     , data-default-class
     , mono-traversable
     , numeric-optimization >=0.1.0.0 && <0.2.0.0
@@ -56,7 +56,7 @@ test-suite numeric-optimization-backprop-test
   build-depends:
       HUnit
     , backprop
-    , base >=4.7 && <5
+    , base >=4.12 && <5
     , containers
     , data-default-class
     , hspec
