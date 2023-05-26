@@ -81,14 +81,11 @@ instance Traversable f => Opt.IsProblem (Problem f) where
   grad (Problem func _bounds size template) =
     toVec size . AD.grad func . fromVec template
 
-  grad'M prob@(Problem f _bounds _size template) x gret = do
-    case gret of
-      Nothing -> return (Opt.func prob x)
-      Just gvec -> do
-        case AD.grad' f (fromVec template x) of
-          (y, g) -> do
-            writeToVec g gvec
-            return y
+  grad'M (Problem f _bounds _size template) x gvec = do
+    case AD.grad' f (fromVector template x) of
+      (y, g) -> do
+        writeToVec g gvec
+        return y
 
   hessian (Problem _func _bounds _size _template) = undefined
 

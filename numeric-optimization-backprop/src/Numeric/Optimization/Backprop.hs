@@ -66,14 +66,11 @@ instance (MonoTraversable a, Element a ~ Double, Backprop a) => Opt.IsProblem (P
 
   grad (Problem f _bounds size x0) x = toVec size $ gradBP f (fromVec x0 x)
 
-  grad'M prob@(Problem f _bounds _size x0) x gret = do
-    case gret of
-      Nothing -> return (Opt.func prob x)
-      Just gvec -> do
-        case backprop f (fromVec x0 x) of
-          (y, g) -> do
-            writeToVec g gvec
-            return y
+  grad'M (Problem f _bounds _size x0) x gvec = do
+    case backprop f (fromVec x0 x) of
+      (y, g) -> do
+        writeToVec g gvec
+        return y
 
   hessian (Problem _func _bounds _size _template) = undefined
 

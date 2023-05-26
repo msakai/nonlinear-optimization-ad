@@ -133,19 +133,16 @@ class IsProblem prob where
   grad' :: prob -> Vector Double -> (Double, Vector Double)
   grad' prob x = runST $ do
     gret <- VGM.new (VG.length x)
-    y <- grad'M prob x (Just gret)
+    y <- grad'M prob x gret
     g <- VG.unsafeFreeze gret
     return (y, g)
 
   -- | Similar to 'grad'' but destination passing style is used for gradient vector
-  grad'M :: PrimMonad m => prob -> Vector Double -> Maybe (VSM.MVector (PrimState m) Double) -> m Double
-  grad'M prob x gret = do
+  grad'M :: PrimMonad m => prob -> Vector Double -> VSM.MVector (PrimState m) Double -> m Double
+  grad'M prob x gvec = do
     let y = func prob x
-    case gret of
-      Nothing -> return y
-      Just gvec -> do
-        VG.imapM_ (VGM.write gvec) (grad prob x)
-        return y
+    VG.imapM_ (VGM.write gvec) (grad prob x)
+    return y
 
   -- | Hessian of a function computed by 'func'
   --
@@ -189,13 +186,13 @@ minimize_CGDescent _params prob x0 = do
       mg :: forall m. PrimMonad m => CG.PointMVector m -> CG.GradientMVector m -> m ()
       mg mx mret = do
         x <- VG.unsafeFreeze mx
-        _ <- grad'M prob x (Just mret)
+        _ <- grad'M prob x mret
         return ()
 
       mc :: forall m. PrimMonad m => CG.PointMVector m -> CG.GradientMVector m -> m Double
       mc mx mret = do
         x <- VG.unsafeFreeze mx
-        grad'M prob x (Just mret)
+        grad'M prob x mret
 
   (x, result, stat) <-
     CG.optimize
@@ -261,10 +258,10 @@ minimize_LBFGS params prob x0 = do
         modifyIORef' evalCounter (+1)
 #if MIN_VERSION_vector(0,13,0)
         x <- VG.unsafeFreeze (VSM.unsafeCoerceMVector xvec :: VSM.IOVector Double)
-        y <- grad'M prob x (Just (VSM.unsafeCoerceMVector gvec :: VSM.IOVector Double))
+        y <- grad'M prob x (VSM.unsafeCoerceMVector gvec :: VSM.IOVector Double)
 #else
         x <- VG.unsafeFreeze (coerce xvec :: VSM.IOVector Double)
-        y <- grad'M prob x (Just (coerce gvec :: VSM.IOVector Double))
+        y <- grad'M prob x (coerce gvec :: VSM.IOVector Double)
 #endif
         return (coerce y)
 
