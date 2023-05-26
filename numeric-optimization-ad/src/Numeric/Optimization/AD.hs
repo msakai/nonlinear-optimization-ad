@@ -73,18 +73,18 @@ data Problem f
 instance Traversable f => Opt.IsProblem (Problem f) where
   func (Problem f _bounds _size template) x =
 #if MIN_VERSION_ad(4,0,0)
-    fst $ AD.grad' f (fromVec template x)
+    fst $ AD.grad' f (fromVector template x)
 #else
-    AD.lowerFU f (fromVec template x)
+    AD.lowerFU f (fromVector template x)
 #endif
 
   grad (Problem func _bounds size template) =
-    toVec size . AD.grad func . fromVec template
+    toVector size . AD.grad func . fromVector template
 
   grad'M (Problem f _bounds _size template) x gvec = do
     case AD.grad' f (fromVector template x) of
       (y, g) -> do
-        writeToVec g gvec
+        writeToMVector g gvec
         return y
 
   hessian (Problem _func _bounds _size _template) = undefined
@@ -94,19 +94,19 @@ instance Traversable f => Opt.IsProblem (Problem f) where
   bounds (Problem _f bounds _size _template) = bounds
 
 
-fromVec :: (Functor f, VG.Vector v a) => f Int -> v a -> f a
-fromVec template x = fmap (x VG.!) template
+fromVector :: (Functor f, VG.Vector v a) => f Int -> v a -> f a
+fromVector template x = fmap (x VG.!) template
 
 
-toVec :: (Traversable f, VG.Vector v a) => Int -> f a -> v a
-toVec size x = VG.create $ do
+toVector :: (Traversable f, VG.Vector v a) => Int -> f a -> v a
+toVector size x = VG.create $ do
   vec <- VGM.new size
-  writeToVec x vec
+  writeToMVector x vec
   return vec
 
 
-writeToVec :: (PrimMonad m, VGM.MVector mv a, Traversable f) => f a -> mv (PrimState m) a -> m ()
-writeToVec x vec = do
+writeToMVector :: (PrimMonad m, VGM.MVector mv a, Traversable f) => f a -> mv (PrimState m) a -> m ()
+writeToMVector x vec = do
   _ <- foldlM (\i v -> VGM.write vec i v >> return (i+1)) 0 x
   return ()
 
@@ -127,14 +127,14 @@ minimize method params f bounds x0 = do
       bounds' :: V.Vector (Double, Double)
       bounds' =
         case bounds of
-          Just bs -> toVec size bs
+          Just bs -> toVector size bs
           Nothing -> VG.replicate size (-1/0, 1/0)
 
       prob = Problem f bounds' size template
       params' =
         Opt.Params
-        { Opt.callback = fmap (\cb -> cb . fromVec template) (callback params)
+        { Opt.callback = fmap (\cb -> cb . fromVector template) (callback params)
         }
 
-  (x, result, stat) <- Opt.minimize method params' prob (toVec size x0)
-  return (fromVec template x, result, stat)
+  (x, result, stat) <- Opt.minimize method params' prob (toVector size x0)
+  return (fromVector template x, result, stat)

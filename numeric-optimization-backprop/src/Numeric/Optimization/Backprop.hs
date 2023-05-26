@@ -62,14 +62,14 @@ data Problem a
 
 
 instance (MonoTraversable a, Element a ~ Double, Backprop a) => Opt.IsProblem (Problem a) where
-  func (Problem f _bounds _size x0) x = evalBP f (fromVec x0 x)
+  func (Problem f _bounds _size x0) x = evalBP f (updateFromVector x0 x)
 
-  grad (Problem f _bounds size x0) x = toVec size $ gradBP f (fromVec x0 x)
+  grad (Problem f _bounds size x0) x = toVector size $ gradBP f (updateFromVector x0 x)
 
   grad'M (Problem f _bounds _size x0) x gvec = do
-    case backprop f (fromVec x0 x) of
+    case backprop f (updateFromVector x0 x) of
       (y, g) -> do
-        writeToVec g gvec
+        writeToMVector g gvec
         return y
 
   hessian (Problem _func _bounds _size _template) = undefined
@@ -79,8 +79,8 @@ instance (MonoTraversable a, Element a ~ Double, Backprop a) => Opt.IsProblem (P
   bounds (Problem _f bounds _size _template) = bounds
 
 
-fromVec :: (MonoTraversable a, VG.Vector v (Element a)) => a -> v (Element a) -> a
-fromVec x0 vec = runST $ do
+updateFromVector :: (MonoTraversable a, VG.Vector v (Element a)) => a -> v (Element a) -> a
+updateFromVector x0 vec = runST $ do
   cnt <- newMutVar 0
   oforM x0 $ \_ -> do
     i <- readMutVar cnt
@@ -88,15 +88,15 @@ fromVec x0 vec = runST $ do
     return (vec VG.! i)
 
 
-toVec :: (MonoTraversable a, VG.Vector v (Element a)) => Int -> a -> v (Element a)
-toVec size x = VG.create $ do
+toVector :: (MonoTraversable a, VG.Vector v (Element a)) => Int -> a -> v (Element a)
+toVector size x = VG.create $ do
   vec <- VGM.new size
-  writeToVec x vec
+  writeToMVector x vec
   return vec
 
 
-writeToVec :: (PrimMonad m, MonoTraversable a, VGM.MVector mv (Element a)) => a -> mv (PrimState m) (Element a) -> m ()
-writeToVec x vec = do
+writeToMVector :: (PrimMonad m, MonoTraversable a, VGM.MVector mv (Element a)) => a -> mv (PrimState m) (Element a) -> m ()
+writeToMVector x vec = do
   cnt <- newMutVar 0
   oforM_ x $ \v -> do
     i <- readMutVar cnt
@@ -129,8 +129,8 @@ minimize method params f bounds x0 = do
       params' :: Opt.Params
       params' =
         Opt.Params
-        { Opt.callback = fmap (\cb -> cb . fromVec x0) (callback params)
+        { Opt.callback = fmap (\cb -> cb . updateFromVector x0) (callback params)
         }
 
-  (x, result, stat) <- Opt.minimize method params' prob (toVec size x0)
-  return (fromVec x0 x, result, stat)
+  (x, result, stat) <- Opt.minimize method params' prob (toVector size x0)
+  return (updateFromVector x0 x, result, stat)
