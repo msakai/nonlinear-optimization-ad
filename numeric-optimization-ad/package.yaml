@@ -23,7 +23,6 @@ dependencies:
 - base >=4.12 && <5
 - data-default-class
 - numeric-optimization >=0.1.0.0 && <0.2.0.0
-- storable-tuple
 
 ghc-options:
 - -Wall
