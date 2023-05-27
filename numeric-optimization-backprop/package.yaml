@@ -39,7 +39,9 @@ ghc-options:
 library:
   source-dirs: src
   dependencies:
+  - containers
   - mono-traversable
+  - mtl
   - primitive
   - reflection
   - vector
