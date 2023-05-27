@@ -104,6 +104,9 @@ instance (Ord k, AllClose r v) => AllClose r (Map k v) where
     | Map.keys m1 == Map.keys m2 = sconcat (allCloseRawUnit :| [allCloseRaw tol a b | (a,b) <- zip (Map.elems m1) (Map.elems m2)])
     | otherwise = Ap Nothing
 
+instance (AllClose r v1, AllClose r v2) => AllClose r (v1, v2)  where
+  allCloseRaw tol (x1,y1) (x2,y2) = allCloseRaw tol x1 x2 <> allCloseRaw tol y1 y2
+
 -- ------------------------------------------------------------------------
 
 -- | Assert that two objects are equal up to desired tolerance.
