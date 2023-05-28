@@ -21,7 +21,8 @@ description:         Please see the README on GitHub at <https://github.com/msak
 
 dependencies:
 - base >=4.12 && <5
-- data-default-class
+- containers >=0.6.0.1 && <0.7
+- data-default-class >=0.1.2.0 && <0.2
 - numeric-optimization >=0.1.0.0 && <0.2.0.0
 
 ghc-options:
@@ -38,13 +39,12 @@ ghc-options:
 library:
   source-dirs: src
   dependencies:
-  - backprop
-  - containers
-  - mono-traversable
-  - mtl
-  - primitive
-  - reflection
-  - vector
+  - backprop >=0.2.6.3 && <0.3
+  - mono-traversable >=1.0.15.1 && <1.1
+  - mtl >=2.2.2 && <2.4
+  - primitive >=0.6.4.0
+  - reflection >=2.1.5
+  - vector >=0.12.0.2 && <0.14
 
 tests:
   numeric-optimization-backprop-test:
@@ -55,8 +55,7 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - containers
-    - hspec
-    - HUnit
+    - hspec >=2.7.1 && <3.0
+    - HUnit >=1.6.0.0 && <1.7
     - numeric-optimization-backprop
-    - microlens
+    - microlens >=0.4.10 && <0.5

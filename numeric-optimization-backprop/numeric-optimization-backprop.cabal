@@ -35,16 +35,16 @@ library
       src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
-      backprop
+      backprop >=0.2.6.3 && <0.3
     , base >=4.12 && <5
-    , containers
-    , data-default-class
-    , mono-traversable
-    , mtl
+    , containers >=0.6.0.1 && <0.7
+    , data-default-class >=0.1.2.0 && <0.2
+    , mono-traversable >=1.0.15.1 && <1.1
+    , mtl >=2.2.2 && <2.4
     , numeric-optimization >=0.1.0.0 && <0.2.0.0
-    , primitive
-    , reflection
-    , vector
+    , primitive >=0.6.4.0
+    , reflection >=2.1.5
+    , vector >=0.12.0.2 && <0.14
   default-language: Haskell2010
 
 test-suite numeric-optimization-backprop-test
@@ -57,12 +57,12 @@ test-suite numeric-optimization-backprop-test
       test
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      HUnit
+      HUnit >=1.6.0.0 && <1.7
     , base >=4.12 && <5
-    , containers
-    , data-default-class
-    , hspec
-    , microlens
+    , containers >=0.6.0.1 && <0.7
+    , data-default-class >=0.1.2.0 && <0.2
+    , hspec >=2.7.1 && <3.0
+    , microlens >=0.4.10 && <0.5
     , numeric-optimization >=0.1.0.0 && <0.2.0.0
     , numeric-optimization-backprop
   default-language: Haskell2010

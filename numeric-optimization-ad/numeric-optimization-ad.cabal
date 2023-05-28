@@ -34,13 +34,13 @@ library
       src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
-      ad >=4.3.6
+      ad >=4.3.6 && <4.6
     , base >=4.12 && <5
     , data-default-class
     , numeric-optimization >=0.1.0.0 && <0.2.0.0
-    , primitive
-    , reflection
-    , vector
+    , primitive >=0.6.4.0
+    , reflection >=2.1.5
+    , vector >=0.12.0.2 && <0.14
   default-language: Haskell2010
 
 test-suite numeric-optimization-ad-test
@@ -53,11 +53,11 @@ test-suite numeric-optimization-ad-test
       test
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      HUnit
+      HUnit >=1.6.0.0 && <1.7
     , base >=4.12 && <5
-    , containers
+    , containers >=0.6.0.1 && <0.7
     , data-default-class
-    , hspec
+    , hspec >=2.7.1 && <3.0
     , numeric-optimization >=0.1.0.0 && <0.2.0.0
     , numeric-optimization-ad
   default-language: Haskell2010

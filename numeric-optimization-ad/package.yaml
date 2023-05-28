@@ -38,10 +38,10 @@ ghc-options:
 library:
   source-dirs: src
   dependencies:
-  - ad >=4.3.6
-  - primitive
-  - reflection
-  - vector
+  - ad >=4.3.6 && <4.6
+  - primitive >=0.6.4.0
+  - reflection >=2.1.5
+  - vector >=0.12.0.2 && <0.14
 
 tests:
   numeric-optimization-ad-test:
@@ -52,7 +52,7 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - containers
-    - hspec
-    - HUnit
+    - containers >=0.6.0.1 && <0.7
+    - hspec >=2.7.1 && <3.0
+    - HUnit >=1.6.0.0 && <1.7
     - numeric-optimization-ad
