@@ -34,6 +34,7 @@ module Numeric.Optimization.Backprop
 
   -- * Re-exports
   , Default (..)
+  , module Numeric.Backprop
   ) where
 
 

@@ -2,7 +2,6 @@
 {-# LANGUAGE RankNTypes #-}
 import Test.Hspec
 
-import Numeric.Backprop
 import Numeric.Optimization.Backprop
 import Lens.Micro
 import IsClose

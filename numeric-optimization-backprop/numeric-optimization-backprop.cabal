@@ -58,7 +58,6 @@ test-suite numeric-optimization-backprop-test
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       HUnit
-    , backprop
     , base >=4.12 && <5
     , containers
     , data-default-class
