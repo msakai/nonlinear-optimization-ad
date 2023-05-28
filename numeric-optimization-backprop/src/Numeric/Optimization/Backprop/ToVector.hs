@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE EmptyCase #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -183,12 +184,20 @@ instance ToVector Double where
 
 instance (a ~ Double) => ToVector (VS.Vector a) where
   dim x = VS.length x
+#if MIN_VERSION_vector(0,12,2)
   writeToMVector x vec = VS.imapM_ (VSM.write vec) x
+#else
+  writeToMVector x vec = flip evalStateT 0 $ VS.mapM_ (\e -> do{ i <- get; VSM.write vec i e; put (i+1) }) x
+#endif
   updateFromVector _x v = v
 
 instance (a ~ Double) => ToVector (VU.Vector a) where
   dim x = VU.length x
+#if MIN_VERSION_vector(0,12,2)
   writeToMVector x vec = VU.imapM_ (VSM.write vec) x
+#else
+  writeToMVector x vec = flip evalStateT 0 $ VU.mapM_ (\e -> do{ i <- get; VSM.write vec i e; put (i+1) }) x
+#endif
   updateFromVector _x v = VG.convert v
 
 instance (ToVector a) => ToVector (V.Vector a) where
