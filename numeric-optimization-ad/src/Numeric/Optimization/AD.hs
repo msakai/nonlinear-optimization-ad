@@ -30,6 +30,10 @@ module Numeric.Optimization.AD
 
   -- * Re-exports
   , Default (..)
+  , auto
+  , Reverse
+  , Reifies
+  , Tape
   ) where
 
 
@@ -41,8 +45,9 @@ import Data.Traversable
 import qualified Data.Vector as V
 import qualified Data.Vector.Generic as VG
 import qualified Data.Vector.Generic.Mutable as VGM
+import Numeric.AD.Internal.Reverse (Tape)
+import Numeric.AD.Mode.Reverse (Reverse, auto)
 import qualified Numeric.AD.Mode.Reverse as AD
-import qualified Numeric.AD.Internal.Reverse as AD (Tape)
 import qualified Numeric.Optimization as Opt
 import Numeric.Optimization hiding (minimize, Params (..), IsProblem (..))
 
@@ -63,7 +68,7 @@ instance Default (Params f) where
 
 data Problem f
   = Problem
-      (forall s. Reifies s AD.Tape => f (AD.Reverse s Double) -> AD.Reverse s Double)
+      (forall s. Reifies s Tape => f (Reverse s Double) -> Reverse s Double)
       (V.Vector (Double, Double))
       [Constraint]
       Int
@@ -116,7 +121,7 @@ minimize
   :: forall f. Traversable f
   => Method  -- ^ Numerical optimization algorithm to use
   -> Params f  -- ^ Parameters for optimization algorithms. Use 'def' as a default.
-  -> (forall s. Reifies s AD.Tape => f (AD.Reverse s Double) -> AD.Reverse s Double)  -- ^ Function to be minimized.
+  -> (forall s. Reifies s Tape => f (Reverse s Double) -> Reverse s Double)  -- ^ Function to be minimized.
   -> Maybe (f (Double, Double))  -- ^ Bounds
   -> [Constraint]  -- ^ Constraintsa
   -> f Double -- ^ Initial value
