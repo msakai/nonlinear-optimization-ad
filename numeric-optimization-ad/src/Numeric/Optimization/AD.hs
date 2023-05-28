@@ -21,6 +21,7 @@ module Numeric.Optimization.AD
   , Params (..)
   , Result (..)
   , Statistics (..)
+  , OptimizationException (..)
 
   -- * Re-exports
   , Default (..)

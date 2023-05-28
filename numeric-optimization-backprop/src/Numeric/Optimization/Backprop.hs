@@ -21,6 +21,7 @@ module Numeric.Optimization.Backprop
   , Params (..)
   , Result (..)
   , Statistics (..)
+  , OptimizationException (..)
   , ToVector
 
   -- * Re-exports

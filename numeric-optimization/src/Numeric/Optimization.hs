@@ -15,17 +15,23 @@
 module Numeric.Optimization
   (
     minimize
-  , IsProblem (..)
-  , Constraint (..)
   , Method (..)
   , Params (..)
   , Result (..)
   , Statistics (..)
+  , OptimizationException (..)
+
+  -- * Problem definition
+  , IsProblem (..)
+  , Constraint (..)
+  , boundsUnconstrained
+  , isUnconstainedBounds
 
   -- * Re-exports
   , Default (..) 
   ) where
 
+import Control.Exception
 import Control.Monad.Primitive
 import Control.Monad.ST
 import Data.Coerce
@@ -116,6 +122,13 @@ data Statistics
   }
 
 
+data OptimizationException
+  = UnsupportedProblem String
+  deriving (Show)
+
+instance Exception OptimizationException
+
+
 -- https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html
 class IsProblem prob where
   -- |
@@ -174,6 +187,14 @@ class IsProblem prob where
 -- Currently, no constraints are supported.
 data Constraint
 
+boundsUnconstrained :: Int -> V.Vector (Double, Double)
+boundsUnconstrained n = V.replicate n (-1/0, 1/0)
+
+isUnconstainedBounds :: V.Vector (Double, Double) -> Bool
+isUnconstainedBounds = V.all p
+  where
+    p (lb, ub) = isInfinite lb && lb < 0 && isInfinite ub && ub > 0
+
 
 -- | Minimization of scalar function of one or more variables.
 --
@@ -184,6 +205,8 @@ minimize LBFGS = minimize_LBFGS
 
 
 minimize_CGDescent :: IsProblem prob => Params -> prob -> Vector Double -> IO (Vector Double, Result, Statistics)
+minimize_CGDescent _params prob _ | not (isUnconstainedBounds (bounds prob)) = throwIO (UnsupportedProblem "CGDescent does not support bounds")
+minimize_CGDescent _params prob _ | not (null (constraints prob)) = throwIO (UnsupportedProblem "CGDescent does not support constraints")
 minimize_CGDescent _params prob x0 = do
   let grad_tol = 1e-6
 
@@ -249,6 +272,8 @@ minimize_CGDescent _params prob x0 = do
 
 
 minimize_LBFGS :: IsProblem prob => Params -> prob -> Vector Double -> IO (Vector Double, Result, Statistics)
+minimize_LBFGS _params prob _ | not (isUnconstainedBounds (bounds prob)) = throwIO (UnsupportedProblem "LBFGS does not support bounds")
+minimize_LBFGS _params prob _ | not (null (constraints prob)) = throwIO (UnsupportedProblem "LBFGS does not support constraints")
 minimize_LBFGS params prob x0 = do
   evalCounter <- newIORef (0::Int)
   iterRef <- newIORef (0::Int)
