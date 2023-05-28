@@ -230,7 +230,9 @@ instance ToVector a => ToVector (SG.Max a)
 instance ToVector a => ToVector (SG.First a)
 instance ToVector a => ToVector (SG.Last a)
 instance ToVector a => ToVector (SG.WrappedMonoid a)
+#if !MIN_VERSION_base(4,16,0)
 instance ToVector a => ToVector (SG.Option a)
+#endif
 instance (ToVector a, ToVector b) => ToVector (SG.Arg a b)
 
 instance ToVector a => ToVector (Dual a)
