@@ -16,6 +16,7 @@
 module Numeric.Optimization.AD
   ( 
     minimize
+  , Constraint (..)
   , Method (..)
   , Params (..)
   , Result (..)
@@ -66,32 +67,35 @@ data Problem f
       (forall s. AD.Mode s => f (AD.AD s Double) -> AD.AD s Double)
 #endif
       (V.Vector (Double, Double))
+      [Constraint]
       Int
       (f Int)
 
 
 instance Traversable f => Opt.IsProblem (Problem f) where
-  func (Problem f _bounds _size template) x =
+  func (Problem f _bounds _constraints _size template) x =
 #if MIN_VERSION_ad(4,0,0)
     fst $ AD.grad' f (fromVector template x)
 #else
     AD.lowerFU f (fromVector template x)
 #endif
 
-  grad (Problem func _bounds size template) =
+  grad (Problem func _bounds _constraints size template) =
     toVector size . AD.grad func . fromVector template
 
-  grad'M (Problem f _bounds _size template) x gvec = do
+  grad'M (Problem f _bounds _constraints _size template) x gvec = do
     case AD.grad' f (fromVector template x) of
       (y, g) -> do
         writeToMVector g gvec
         return y
 
-  hessian (Problem _func _bounds _size _template) = undefined
+  hessian (Problem _func _bounds _constraints _size _template) = undefined
 
-  hessianProduct (Problem _func _bounds _size _template) = undefined
+  hessianProduct (Problem _func _bounds _constraints _size _template) = undefined
 
-  bounds (Problem _f bounds _size _template) = bounds
+  bounds (Problem _f bounds _constraints _size _template) = bounds
+
+  constraints (Problem _f _bounds constraints _size _template) = constraints
 
 
 fromVector :: (Functor f, VG.Vector v a) => f Int -> v a -> f a
@@ -117,9 +121,10 @@ minimize
   -> Params f
   -> (forall s. Reifies s AD.Tape => f (AD.Reverse s Double) -> AD.Reverse s Double)  -- ^ Function to be minimized.
   -> Maybe (f (Double, Double))  -- ^ Bounds
+  -> [Constraint]  -- ^ Constraintsa
   -> f Double -- ^ Initial value
   -> IO (f Double, Result, Statistics)
-minimize method params f bounds x0 = do
+minimize method params f bounds constraints x0 = do
   let size :: Int
       template :: f Int
       (size, template) = mapAccumL (\i _ -> i `seq` (i+1, i)) 0 x0
@@ -130,7 +135,7 @@ minimize method params f bounds x0 = do
           Just bs -> toVector size bs
           Nothing -> VG.replicate size (-1/0, 1/0)
 
-      prob = Problem f bounds' size template
+      prob = Problem f bounds' constraints size template
       params' =
         Opt.Params
         { Opt.callback = fmap (\cb -> cb . fromVector template) (callback params)

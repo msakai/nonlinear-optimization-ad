@@ -16,6 +16,7 @@ module Numeric.Optimization
   (
     minimize
   , IsProblem (..)
+  , Constraint (..)
   , Method (..)
   , Params (..)
   , Result (..)
@@ -161,7 +162,17 @@ class IsProblem prob where
   --
   bounds :: prob -> V.Vector (Double, Double)
 
+  -- | Constraints
+  constraints :: prob -> [Constraint]
+  constraints _ = []
+
   {-# MINIMAL ((func, grad) | grad' | grad'M), hessian, bounds #-}
+
+
+-- | Type of constraint
+--
+-- Currently, no constraints are supported.
+data Constraint
 
 
 -- | Minimization of scalar function of one or more variables.

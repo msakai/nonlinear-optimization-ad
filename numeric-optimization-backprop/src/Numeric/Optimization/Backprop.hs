@@ -54,25 +54,28 @@ data Problem a
   = Problem
       (forall s. Reifies s W => BVar s a -> BVar s Double)
       (V.Vector (Double, Double))
+      [Constraint]
       a
 
 
 instance (Backprop a, ToVector a) => Opt.IsProblem (Problem a) where
-  func (Problem f _bounds x0) x = evalBP f (updateFromVector x0 x)
+  func (Problem f _bounds _constraints x0) x = evalBP f (updateFromVector x0 x)
 
-  grad (Problem f _bounds x0) x = toVector $ gradBP f (updateFromVector x0 x)
+  grad (Problem f _bounds _constraints x0) x = toVector $ gradBP f (updateFromVector x0 x)
 
-  grad'M (Problem f _bounds x0) x gvec = do
+  grad'M (Problem f _bounds _constraints x0) x gvec = do
     case backprop f (updateFromVector x0 x) of
       (y, g) -> do
         writeToMVector g gvec
         return y
 
-  hessian (Problem _func _bounds _template) = undefined
+  hessian (Problem _func _bounds _constraints _template) = undefined
 
-  hessianProduct (Problem _func _bounds _template) = undefined
+  hessianProduct (Problem _func _bounds _constraints _template) = undefined
 
-  bounds (Problem _f bounds _template) = bounds
+  bounds (Problem _f bounds _constraints _template) = bounds
+
+  constraints (Problem _f _bounds constraints _template) = constraints
 
 
 minimize
@@ -81,9 +84,10 @@ minimize
   -> Params a
   -> (forall s. Reifies s W => BVar s a -> BVar s Double)  -- ^ Function to be minimized.
   -> Maybe [(Double, Double)]  -- ^ Bounds
+  -> [Constraint]  -- ^ Constraints
   -> a -- ^ Initial value
   -> IO (a, Result, Statistics)
-minimize method params f bounds x0 = do
+minimize method params f bounds constraints x0 = do
   let bounds' :: V.Vector (Double, Double)
       bounds' = 
         case bounds of
@@ -91,7 +95,7 @@ minimize method params f bounds x0 = do
           Just bs -> VG.fromList bs
 
       prob :: Problem a
-      prob = Problem f bounds' x0
+      prob = Problem f bounds' constraints x0
 
       params' :: Opt.Params
       params' =
