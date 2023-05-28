@@ -26,7 +26,7 @@ module Numeric.Optimization.Backprop.ToVector
   -- * Utilities for defining ToVector class
 
   -- ** Generics
-  , ToVector' (..)
+  , GToVector (..)
 
   -- ** @Foldable@/@Traversable@-based definition
   , dimFoldable
@@ -84,14 +84,14 @@ class ToVector a where
   -- | Converting @'VS.Vector' 'Double'@ back to a value
   updateFromVector :: a -> VS.Vector Double -> a
 
-  default dim :: (Generic a, ToVector' (Rep a)) => a -> Int
-  dim x = dim' (from x)
+  default dim :: (Generic a, GToVector (Rep a)) => a -> Int
+  dim x = gDim (from x)
 
-  default writeToMVector :: (Generic a, ToVector' (Rep a), PrimMonad m) => a -> VSM.MVector (PrimState m) Double -> m ()
-  writeToMVector x vec = writeToMVector' (from x) vec
+  default writeToMVector :: (Generic a, GToVector (Rep a), PrimMonad m) => a -> VSM.MVector (PrimState m) Double -> m ()
+  writeToMVector x vec = gWriteToMVector (from x) vec
 
-  default updateFromVector :: (Generic a, ToVector' (Rep a)) => a -> VS.Vector Double -> a
-  updateFromVector x v = to (updateFromVector' (from x) v)
+  default updateFromVector :: (Generic a, GToVector (Rep a)) => a -> VS.Vector Double -> a
+  updateFromVector x v = to (gUpdateFromVector (from x) v)
 
 -- | Converting a value to @'VS.Vector' 'Double'@.
 toVector :: ToVector a => a -> VS.Vector Double
@@ -155,49 +155,49 @@ updateFromVectorMonoTraversable xs v0 = flip evalState v0 $ do
 -- ------------------------------------------------------------------------
 
 -- | Class of generic representation types that can be converted to/from 'VS.Vector' 'Double'.
-class ToVector' f where
-  dim' :: f p -> Int
-  writeToMVector' :: PrimMonad m => f p -> VSM.MVector (PrimState m) Double -> m ()
-  updateFromVector' :: f p -> VS.Vector Double -> f p
+class GToVector f where
+  gDim :: f p -> Int
+  gWriteToMVector :: PrimMonad m => f p -> VSM.MVector (PrimState m) Double -> m ()
+  gUpdateFromVector :: f p -> VS.Vector Double -> f p
 
-instance ToVector' V1 where
-  dim' x = case x of { }
-  writeToMVector' _x _vec = return ()
-  updateFromVector' x _v = case x of { }
+instance GToVector V1 where
+  gDim x = case x of { }
+  gWriteToMVector _x _vec = return ()
+  gUpdateFromVector x _v = case x of { }
 
-instance ToVector' U1 where
-  dim' _ = 0
-  writeToMVector' _x _vec = return ()
-  updateFromVector' x _v = x
+instance GToVector U1 where
+  gDim _ = 0
+  gWriteToMVector _x _vec = return ()
+  gUpdateFromVector x _v = x
 
-instance (ToVector' f, ToVector' g) => ToVector' (f :+: g) where
-  dim' (L1 x) = dim' x
-  dim' (R1 x) = dim' x
-  writeToMVector' (L1 x) vec = writeToMVector' x vec
-  writeToMVector' (R1 x) vec = writeToMVector' x vec
-  updateFromVector' (L1 x) v = L1 (updateFromVector' x v)
-  updateFromVector' (R1 x) v = R1 (updateFromVector' x v)
+instance (GToVector f, GToVector g) => GToVector (f :+: g) where
+  gDim (L1 x) = gDim x
+  gDim (R1 x) = gDim x
+  gWriteToMVector (L1 x) vec = gWriteToMVector x vec
+  gWriteToMVector (R1 x) vec = gWriteToMVector x vec
+  gUpdateFromVector (L1 x) v = L1 (gUpdateFromVector x v)
+  gUpdateFromVector (R1 x) v = R1 (gUpdateFromVector x v)
 
-instance (ToVector' f, ToVector' g) => ToVector' (f :*: g) where
-  dim' (a :*: b) = dim' a + dim' b
-  writeToMVector' (a :*: b) vec =
-    case VSM.splitAt (dim' a) vec of
+instance (GToVector f, GToVector g) => GToVector (f :*: g) where
+  gDim (a :*: b) = gDim a + gDim b
+  gWriteToMVector (a :*: b) vec =
+    case VSM.splitAt (gDim a) vec of
       (vec1, vec2) -> do
-        writeToMVector' a vec1
-        writeToMVector' b vec2
-  updateFromVector' (a :*: b) v =
-    case VS.splitAt (dim' a) v of
-      (vec1, vec2) -> (updateFromVector' a vec1 :*: updateFromVector' b vec2)
+        gWriteToMVector a vec1
+        gWriteToMVector b vec2
+  gUpdateFromVector (a :*: b) v =
+    case VS.splitAt (gDim a) v of
+      (vec1, vec2) -> (gUpdateFromVector a vec1 :*: gUpdateFromVector b vec2)
 
-instance (ToVector c) => ToVector' (K1 i c) where
-  dim' (K1 x) = dim x
-  writeToMVector' (K1 x) vec = writeToMVector x vec
-  updateFromVector' (K1 x) v = K1 (updateFromVector x v)
+instance (ToVector c) => GToVector (K1 i c) where
+  gDim (K1 x) = dim x
+  gWriteToMVector (K1 x) vec = writeToMVector x vec
+  gUpdateFromVector (K1 x) v = K1 (updateFromVector x v)
 
-instance (ToVector' f) => ToVector' (M1 i t f) where
-  dim' (M1 x) = dim' x
-  writeToMVector' (M1 x) vec = writeToMVector' x vec
-  updateFromVector' (M1 x) v = M1 (updateFromVector' x v)
+instance (GToVector f) => GToVector (M1 i t f) where
+  gDim (M1 x) = gDim x
+  gWriteToMVector (M1 x) vec = gWriteToMVector x vec
+  gUpdateFromVector (M1 x) v = M1 (gUpdateFromVector x v)
 
 -- ------------------------------------------------------------------------
 
