@@ -28,14 +28,14 @@ module Numeric.Optimization.Backprop.ToVector
   -- ** Generics
   , ToVector' (..)
 
-  -- ** Traversable-based definition
-  , dimTraversable
-  , writeToMVectorTraversable
+  -- ** @Foldable@/@Traversable@-based definition
+  , dimFoldable
+  , writeToMVectorFoldable
   , updateFromVectorTraversable
 
-  -- ** MonoTraversable-based definition
-  , dimMonoTraversable
-  , writeToMVectorMonoTraversable
+  -- ** @MonoFoldable@/@MonoTraversable@-based definition
+  , dimMonoFoldable
+  , writeToMVectorMonoFoldable
   , updateFromVectorMonoTraversable
   ) where
 
@@ -102,13 +102,13 @@ toVector x = VS.create $ do
 
 -- ------------------------------------------------------------------------
 
--- | Implementation of 'dim' for the type of the form @f a@ for @'Traversable' f@.
-dimTraversable :: (Traversable f, ToVector a) => f a -> Int
-dimTraversable = getSum . foldMap (Sum . dim)
+-- | Implementation of 'dim' for the type of the form @f a@ for @'Foldable' f@.
+dimFoldable :: (Foldable f, ToVector a) => f a -> Int
+dimFoldable = getSum . foldMap (Sum . dim)
 
--- | Implementation of 'writeToMVector' for the type of the form @f a@ for @'Traversable' f@.
-writeToMVectorTraversable :: (Traversable f, ToVector a, PrimMonad m) => f a -> VSM.MVector (PrimState m) Double -> m ()
-writeToMVectorTraversable xs vec = foldM_ f vec xs
+-- | Implementation of 'writeToMVector' for the type of the form @f a@ for @'Foldable' f@.
+writeToMVectorFoldable :: (Foldable f, ToVector a, PrimMonad m) => f a -> VSM.MVector (PrimState m) Double -> m ()
+writeToMVectorFoldable xs vec = foldM_ f vec xs
   where
     f vec' x =
       case VSM.splitAt (dim x) vec' of
@@ -128,13 +128,13 @@ updateFromVectorTraversable xs v0 = flip evalState v0 $ do
 
 -- ------------------------------------------------------------------------
 
--- | Implementation of 'dim' for a 'MT.MonoTraversable' type
-dimMonoTraversable :: (MT.MonoTraversable a, ToVector (MT.Element a)) => a -> Int
-dimMonoTraversable = getSum . MT.ofoldMap (Sum . dim)
+-- | Implementation of 'dim' for a 'MT.MonoFoldable' type
+dimMonoFoldable :: (MT.MonoFoldable a, ToVector (MT.Element a)) => a -> Int
+dimMonoFoldable = getSum . MT.ofoldMap (Sum . dim)
 
--- | Implementation of 'writeToMVector' for a 'MT.MonoTraversable' type
-writeToMVectorMonoTraversable :: (MT.MonoTraversable a, ToVector (MT.Element a), PrimMonad m) => a -> VSM.MVector (PrimState m) Double -> m ()
-writeToMVectorMonoTraversable xs vec = MT.ofoldM f vec xs >> return ()
+-- | Implementation of 'writeToMVector' for a 'MT.MonoFoldable' type
+writeToMVectorMonoFoldable :: (MT.MonoFoldable a, ToVector (MT.Element a), PrimMonad m) => a -> VSM.MVector (PrimState m) Double -> m ()
+writeToMVectorMonoFoldable xs vec = MT.ofoldM f vec xs >> return ()
   where
     f vec' x =
       case VSM.splitAt (dim x) vec' of
@@ -274,28 +274,28 @@ instance (ToVector (f a), ToVector (g a)) => ToVector (Functor.Product f g a)
 instance (ToVector (f a), ToVector (g a)) => ToVector (Functor.Sum f g a)
 
 instance ToVector a => ToVector [a] where
-  dim = dimTraversable
-  writeToMVector = writeToMVectorTraversable
+  dim = dimFoldable
+  writeToMVector = writeToMVectorFoldable
   updateFromVector = updateFromVectorTraversable
 
 instance ToVector a => ToVector (NonEmpty a) where
-  dim = dimTraversable
-  writeToMVector = writeToMVectorTraversable
+  dim = dimFoldable
+  writeToMVector = writeToMVectorFoldable
   updateFromVector = updateFromVectorTraversable
 
 instance ToVector a => ToVector (Map k a) where
-  dim = dimTraversable
-  writeToMVector = writeToMVectorTraversable
+  dim = dimFoldable
+  writeToMVector = writeToMVectorFoldable
   updateFromVector = updateFromVectorTraversable
 
 instance ToVector a => ToVector (IntMap a) where
-  dim = dimTraversable
-  writeToMVector = writeToMVectorTraversable
+  dim = dimFoldable
+  writeToMVector = writeToMVectorFoldable
   updateFromVector = updateFromVectorTraversable
 
 instance ToVector a => ToVector (Seq a) where
-  dim = dimTraversable
-  writeToMVector = writeToMVectorTraversable
+  dim = dimFoldable
+  writeToMVector = writeToMVectorFoldable
   updateFromVector = updateFromVectorTraversable
 
 -- ------------------------------------------------------------------------
