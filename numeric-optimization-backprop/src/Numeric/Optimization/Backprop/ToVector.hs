@@ -103,8 +103,8 @@ toVector x = VS.create $ do
 -- ------------------------------------------------------------------------
 
 -- | Implementation of 'dim' for the type of the form @f a@ for @'Traversable' f@.
-dimTraversable :: Traversable f => f a -> Int
-dimTraversable = length
+dimTraversable :: (Traversable f, ToVector a) => f a -> Int
+dimTraversable = getSum . foldMap (Sum . dim)
 
 -- | Implementation of 'writeToMVector' for the type of the form @f a@ for @'Traversable' f@.
 writeToMVectorTraversable :: (Traversable f, ToVector a, PrimMonad m) => f a -> VSM.MVector (PrimState m) Double -> m ()
@@ -129,8 +129,8 @@ updateFromVectorTraversable xs v0 = flip evalState v0 $ do
 -- ------------------------------------------------------------------------
 
 -- | Implementation of 'dim' for a 'MT.MonoTraversable' type
-dimMonoTraversable :: MT.MonoTraversable a => a -> Int
-dimMonoTraversable = MT.olength
+dimMonoTraversable :: (MT.MonoTraversable a, ToVector (MT.Element a)) => a -> Int
+dimMonoTraversable = getSum . MT.ofoldMap (Sum . dim)
 
 -- | Implementation of 'writeToMVector' for a 'MT.MonoTraversable' type
 writeToMVectorMonoTraversable :: (MT.MonoTraversable a, ToVector (MT.Element a), PrimMonad m) => a -> VSM.MVector (PrimState m) Double -> m ()
