@@ -11,9 +11,18 @@
 -- Stability   :  provisional
 -- Portability :  non-portable
 --
+-- This module aims to provides unifined interface to various numerical
+-- optimization, like [scipy.optimize](https://docs.scipy.org/doc/scipy/reference/optimize.html) in Python.
+--
+-- In this module, you need to explicitly provide the function to calculate the
+-- gradient, -- but you can use @numeric-optimization-ad@ or
+-- @numeric-optimization-backprop@ to define it using automatic differentiation.
+--
 -----------------------------------------------------------------------------
 module Numeric.Optimization
   (
+
+  -- * Main function
     minimize
   , Method (..)
   , Params (..)
@@ -28,7 +37,7 @@ module Numeric.Optimization
   , isUnconstainedBounds
 
   -- * Re-exports
-  , Default (..) 
+  , Default (..)
   ) where
 
 import Control.Exception
@@ -49,12 +58,13 @@ import Numeric.LinearAlgebra (Matrix)
 import qualified Numeric.LinearAlgebra as LA
 
 
+-- | Selection of numerical optimization algorithms
 data Method
   = CGDescent
     -- ^ Conjugate gradient method based on Hager and Zhang [1].
     --
     -- The implementation is provided by nonlinear-optimization package [3]
-    -- the binding library of [2].
+    -- which is a binding library of [2].
     --
     -- * [1] Hager, W. W. and Zhang, H.  /A new conjugate gradient/
     --   /method with guaranteed descent and an efficient line/
@@ -68,7 +78,7 @@ data Method
     -- ^ Limited memory BFGS (L-BFGS) algorithm [1]
     --
     -- The implementtion is provided by lbfgs package [2]
-    -- the binding of liblbfgs [3].
+    -- which is a binding of liblbfgs [3].
     --
     -- * [1] <https://en.wikipedia.org/wiki/Limited-memory_BFGS>
     --
@@ -78,6 +88,7 @@ data Method
   deriving (Eq, Ord, Enum, Show, Bounded)
 
 
+-- | Parameters for optimization algorithms
 data Params
   = Params
   { callback :: Maybe (Vector Double -> IO Bool)
@@ -91,7 +102,7 @@ instance Default Params where
     }
 
 
--- | Optimization Result
+-- | Optimization result
 data Result
   = Result
   { resultSuccess :: Bool
@@ -109,6 +120,7 @@ data Result
   }
 
 
+-- | Statistics of optimizaion process
 data Statistics
   = Statistics
   { totalIters :: Int
@@ -122,6 +134,7 @@ data Statistics
   }
 
 
+-- | The bad things that can happen when you use the library.
 data OptimizationException
   = UnsupportedProblem String
   deriving (Show)
@@ -129,9 +142,9 @@ data OptimizationException
 instance Exception OptimizationException
 
 
--- https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html
+-- | Optimization problems
 class IsProblem prob where
-  -- |
+  -- | Objective function
   --
   -- It is called @fun@ in @scipy.optimize.minimize@.
   func :: prob -> Vector Double -> Double
@@ -187,9 +200,11 @@ class IsProblem prob where
 -- Currently, no constraints are supported.
 data Constraint
 
+-- | Bounds for unconstrained problems, i.e. (-∞,+∞).
 boundsUnconstrained :: Int -> V.Vector (Double, Double)
 boundsUnconstrained n = V.replicate n (-1/0, 1/0)
 
+-- | Whether all lower bounds are -∞ and all upper bounds are +∞.
 isUnconstainedBounds :: V.Vector (Double, Double) -> Bool
 isUnconstainedBounds = V.all p
   where
@@ -199,7 +214,13 @@ isUnconstainedBounds = V.all p
 -- | Minimization of scalar function of one or more variables.
 --
 -- This function is intended to provide functionality similar to Python's @scipy.optimize.minimize@.
-minimize :: IsProblem prob => Method -> Params -> prob -> Vector Double -> IO (Vector Double, Result, Statistics)
+minimize
+  :: IsProblem prob
+  => Method  -- ^ Numerical optimization algorithm to use
+  -> Params  -- ^ Parameters for optimization algorithms. Use 'def' as a default.
+  -> prob  -- ^ Optimization problem to solve
+  -> Vector Double  -- ^ Initial value
+  -> IO (Vector Double, Result, Statistics)
 minimize CGDescent = minimize_CGDescent
 minimize LBFGS = minimize_LBFGS
 

@@ -14,6 +14,8 @@
 -- Stability   :  provisional
 -- Portability :  non-portable
 --
+-- Conversion between a type and 'VS.Vector' 'Double'.
+--
 -----------------------------------------------------------------------------
 module Numeric.Optimization.Backprop.ToVector
   (
@@ -23,7 +25,7 @@ module Numeric.Optimization.Backprop.ToVector
 
   -- * Utilities for defining ToVector class
 
-  -- *+ Foc Generics
+  -- ** Generics
   , ToVector' (..)
 
   -- ** Traversable-based definition
@@ -63,9 +65,23 @@ import Data.Void
 
 -- ------------------------------------------------------------------------
 
+-- | Type that can be converted to @'VS.Vector' 'Double'@ and back.
+--
+-- Laws that should be satisfied:
+--
+-- * @'VS.length' . 'toVector' = dim@
+--
+-- * @updateFromVector a ('toVector' a) = a@
+--
+-- * @updateFromVector (updateFromVector a v1) v2 = updateFromVector a v2@
 class ToVector a where
+  -- | Dimention of the resulting vector.
   dim :: a -> Int
+
+  -- | Destination passing style version of 'toVector'.
   writeToMVector :: PrimMonad m => a -> VSM.MVector (PrimState m) Double -> m ()
+
+  -- | Converting @'VS.Vector' 'Double'@ back to a value
   updateFromVector :: a -> VS.Vector Double -> a
 
   default dim :: (Generic a, ToVector' (Rep a)) => a -> Int
@@ -77,6 +93,7 @@ class ToVector a where
   default updateFromVector :: (Generic a, ToVector' (Rep a)) => a -> VS.Vector Double -> a
   updateFromVector x v = to (updateFromVector' (from x) v)
 
+-- | Converting a value to @'VS.Vector' 'Double'@.
 toVector :: ToVector a => a -> VS.Vector Double
 toVector x = VS.create $ do
   vec <- VSM.new (dim x)
@@ -85,9 +102,11 @@ toVector x = VS.create $ do
 
 -- ------------------------------------------------------------------------
 
+-- | Implementation of 'dim' for the type of the form @f a@ for @'Traversable' f@.
 dimTraversable :: Traversable f => f a -> Int
 dimTraversable = length
 
+-- | Implementation of 'writeToMVector' for the type of the form @f a@ for @'Traversable' f@.
 writeToMVectorTraversable :: (Traversable f, ToVector a, PrimMonad m) => f a -> VSM.MVector (PrimState m) Double -> m ()
 writeToMVectorTraversable xs vec = foldM_ f vec xs
   where
@@ -97,6 +116,7 @@ writeToMVectorTraversable xs vec = foldM_ f vec xs
           writeToMVector x vec1
           return vec2
 
+-- | Implementation of 'updateFromVectorTraversable' for the type of the form @f a@ for @'Traversable' f@.
 updateFromVectorTraversable :: (Traversable f, ToVector a) => f a -> VS.Vector Double -> f a
 updateFromVectorTraversable xs v0 = flip evalState v0 $ do
   forM xs $ \x -> do
@@ -108,9 +128,11 @@ updateFromVectorTraversable xs v0 = flip evalState v0 $ do
 
 -- ------------------------------------------------------------------------
 
+-- | Implementation of 'dim' for a 'MT.MonoTraversable' type
 dimMonoTraversable :: MT.MonoTraversable a => a -> Int
 dimMonoTraversable = MT.olength
 
+-- | Implementation of 'writeToMVector' for a 'MT.MonoTraversable' type
 writeToMVectorMonoTraversable :: (MT.MonoTraversable a, ToVector (MT.Element a), PrimMonad m) => a -> VSM.MVector (PrimState m) Double -> m ()
 writeToMVectorMonoTraversable xs vec = MT.ofoldM f vec xs >> return ()
   where
@@ -120,6 +142,7 @@ writeToMVectorMonoTraversable xs vec = MT.ofoldM f vec xs >> return ()
           writeToMVector x vec1
           return vec2
 
+-- | Implementation of 'updateFromVector' for a 'MT.MonoTraversable' type
 updateFromVectorMonoTraversable :: (MT.MonoTraversable a, ToVector (MT.Element a)) => a -> VS.Vector Double -> a
 updateFromVectorMonoTraversable xs v0 = flip evalState v0 $ do
   MT.oforM xs $ \x -> do
@@ -131,6 +154,7 @@ updateFromVectorMonoTraversable xs v0 = flip evalState v0 $ do
 
 -- ------------------------------------------------------------------------
 
+-- | Class of generic representation types that can be converted to/from 'VS.Vector' 'Double'.
 class ToVector' f where
   dim' :: f p -> Int
   writeToMVector' :: PrimMonad m => f p -> VSM.MVector (PrimState m) Double -> m ()

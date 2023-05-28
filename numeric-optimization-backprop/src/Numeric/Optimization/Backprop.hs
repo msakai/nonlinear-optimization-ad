@@ -14,15 +14,23 @@
 -- Stability   :  provisional
 -- Portability :  non-portable
 --
+-- This module is a wrapper of "Numeric.Optimization" that uses
+-- [backprop](https://hackage.haskell.org/package/backprop)'s automatic differentiation.
+--
 -----------------------------------------------------------------------------
 module Numeric.Optimization.Backprop
-  ( minimize
+  (
+  -- * Main function
+    minimize
   , Method (..)
   , Params (..)
   , Result (..)
   , Statistics (..)
   , OptimizationException (..)
   , ToVector
+
+  -- * Problem definition
+  , Constraint (..)
 
   -- * Re-exports
   , Default (..)
@@ -38,6 +46,7 @@ import Numeric.Optimization hiding (minimize, Params (..), IsProblem (..))
 import Numeric.Optimization.Backprop.ToVector
 
 
+-- | Parameters for optimization algorithms
 data Params a
   = Params
   { callback :: Maybe (a -> IO Bool)
@@ -79,10 +88,13 @@ instance (Backprop a, ToVector a) => Opt.IsProblem (Problem a) where
   constraints (Problem _f _bounds constraints _template) = constraints
 
 
+-- | Minimization of scalar function of one or more variables.
+--
+-- This is a wrapper of 'Opt.minimize' and use "Numeric.Backprop" to compute gradient.
 minimize
   :: forall a. (Backprop a, ToVector a)
-  => Method
-  -> Params a
+  => Method  -- ^ Numerical optimization algorithm to use
+  -> Params a  -- ^ Parameters for optimization algorithms. Use 'def' as a default.
   -> (forall s. Reifies s W => BVar s a -> BVar s Double)  -- ^ Function to be minimized.
   -> Maybe [(Double, Double)]  -- ^ Bounds
   -> [Constraint]  -- ^ Constraints
@@ -90,7 +102,7 @@ minimize
   -> IO (a, Result, Statistics)
 minimize method params f bounds constraints x0 = do
   let bounds' :: V.Vector (Double, Double)
-      bounds' = 
+      bounds' =
         case bounds of
           Nothing -> VG.replicate (dim x0) (-1/0, 1/0)
           Just bs -> VG.fromList bs

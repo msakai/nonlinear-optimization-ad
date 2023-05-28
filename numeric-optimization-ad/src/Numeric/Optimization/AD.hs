@@ -12,16 +12,22 @@
 -- Stability   :  provisional
 -- Portability :  non-portable
 --
+-- This module is a wrapper of "Numeric.Optimization" that uses
+-- [ad](https://hackage.haskell.org/package/ad)'s automatic differentiation.
+--
 -----------------------------------------------------------------------------
 module Numeric.Optimization.AD
-  ( 
+  (
+  -- * Main function
     minimize
-  , Constraint (..)
   , Method (..)
   , Params (..)
   , Result (..)
   , Statistics (..)
   , OptimizationException (..)
+
+  -- * Problem definition
+  , Constraint (..)
 
   -- * Re-exports
   , Default (..)
@@ -47,6 +53,7 @@ import qualified Numeric.AD.Types as AD
 #endif
 
 
+-- | Parameters for optimization algorithms
 data Params f
   = Params
   { callback :: Maybe (f Double -> IO Bool)
@@ -116,10 +123,13 @@ writeToMVector x vec = do
   return ()
 
 
+-- | Minimization of scalar function of one or more variables.
+--
+-- This is a wrapper of 'Opt.minimize' and use "Numeric.AD.Mode.Reverse" to compute gradient.
 minimize
   :: forall f. Traversable f
-  => Method
-  -> Params f
+  => Method  -- ^ Numerical optimization algorithm to use
+  -> Params f  -- ^ Parameters for optimization algorithms. Use 'def' as a default.
   -> (forall s. Reifies s AD.Tape => f (AD.Reverse s Double) -> AD.Reverse s Double)  -- ^ Function to be minimized.
   -> Maybe (f (Double, Double))  -- ^ Bounds
   -> [Constraint]  -- ^ Constraintsa
