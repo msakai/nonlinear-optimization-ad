@@ -38,7 +38,7 @@ ghc-options:
 library:
   source-dirs: src
   dependencies:
-  - ad
+  - ad >=4.3.6
   - primitive
   - reflection
   - vector

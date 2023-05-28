@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -37,20 +36,15 @@ module Numeric.Optimization.AD
 import Control.Monad.Primitive
 import Data.Default.Class
 import Data.Foldable (foldlM)
+import Data.Reflection (Reifies)
 import Data.Traversable
 import qualified Data.Vector as V
 import qualified Data.Vector.Generic as VG
 import qualified Data.Vector.Generic.Mutable as VGM
-import qualified Numeric.Optimization as Opt
-import Numeric.Optimization hiding (minimize, Params (..), IsProblem (..))
-
-#if MIN_VERSION_ad(4,0,0)
-import Data.Reflection (Reifies)
 import qualified Numeric.AD.Mode.Reverse as AD
 import qualified Numeric.AD.Internal.Reverse as AD (Tape)
-#else
-import qualified Numeric.AD.Types as AD
-#endif
+import qualified Numeric.Optimization as Opt
+import Numeric.Optimization hiding (minimize, Params (..), IsProblem (..))
 
 
 -- | Parameters for optimization algorithms
@@ -69,11 +63,7 @@ instance Default (Params f) where
 
 data Problem f
   = Problem
-#if MIN_VERSION_ad(4,0,0)
       (forall s. Reifies s AD.Tape => f (AD.Reverse s Double) -> AD.Reverse s Double)
-#else
-      (forall s. AD.Mode s => f (AD.AD s Double) -> AD.AD s Double)
-#endif
       (V.Vector (Double, Double))
       [Constraint]
       Int
@@ -82,11 +72,7 @@ data Problem f
 
 instance Traversable f => Opt.IsProblem (Problem f) where
   func (Problem f _bounds _constraints _size template) x =
-#if MIN_VERSION_ad(4,0,0)
     fst $ AD.grad' f (fromVector template x)
-#else
-    AD.lowerFU f (fromVector template x)
-#endif
 
   grad (Problem func _bounds _constraints size template) =
     toVector size . AD.grad func . fromVector template

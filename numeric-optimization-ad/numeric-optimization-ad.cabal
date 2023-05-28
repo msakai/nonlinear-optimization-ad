@@ -34,7 +34,7 @@ library
       src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
-      ad
+      ad >=4.3.6
     , base >=4.12 && <5
     , data-default-class
     , numeric-optimization >=0.1.0.0 && <0.2.0.0
