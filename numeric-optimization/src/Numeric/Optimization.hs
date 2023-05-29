@@ -25,6 +25,7 @@ module Numeric.Optimization
   -- * Main function
     minimize
   , Method (..)
+  , isSupportedMethod
   , Params (..)
   , Result (..)
   , Statistics (..)
@@ -53,7 +54,9 @@ import qualified Data.Vector.Generic.Mutable as VGM
 import qualified Data.Vector.Storable.Mutable as VSM
 import Foreign.C
 import qualified Numeric.LBFGS.Vector as LBFGS
+#ifdef WITH_CG_DESCENT
 import qualified Numeric.Optimization.Algorithms.HagerZhang05 as CG
+#endif
 import Numeric.LinearAlgebra (Matrix)
 import qualified Numeric.LinearAlgebra as LA
 
@@ -86,6 +89,16 @@ data Method
     --
     -- * [3] <https://github.com/chokkan/liblbfgs>
   deriving (Eq, Ord, Enum, Show, Bounded)
+
+
+-- | Whether a 'Method' is supported under the current environment.
+isSupportedMethod :: Method -> Bool
+isSupportedMethod LBFGS = True
+#ifdef WITH_CG_DESCENT
+isSupportedMethod CGDescent = True
+#else
+isSupportedMethod CGDescent = False
+#endif
 
 
 -- | Parameters for optimization algorithms
@@ -137,6 +150,7 @@ data Statistics
 -- | The bad things that can happen when you use the library.
 data OptimizationException
   = UnsupportedProblem String
+  | UnsupportedMethod Method
   deriving (Show)
 
 instance Exception OptimizationException
@@ -221,9 +235,14 @@ minimize
   -> prob  -- ^ Optimization problem to solve
   -> Vector Double  -- ^ Initial value
   -> IO (Vector Double, Result, Statistics)
+#ifdef WITH_CG_DESCENT
 minimize CGDescent = minimize_CGDescent
+#endif
 minimize LBFGS = minimize_LBFGS
+minimize method = \_ _ _ -> throwIO (UnsupportedMethod method)
 
+
+#ifdef WITH_CG_DESCENT
 
 minimize_CGDescent :: IsProblem prob => Params -> prob -> Vector Double -> IO (Vector Double, Result, Statistics)
 minimize_CGDescent _params prob _ | not (isUnconstainedBounds (bounds prob)) = throwIO (UnsupportedProblem "CGDescent does not support bounds")
@@ -290,6 +309,8 @@ minimize_CGDescent _params prob x0 = do
       , hessEvals = 0
       }
     )
+
+#endif
 
 
 minimize_LBFGS :: IsProblem prob => Params -> prob -> Vector Double -> IO (Vector Double, Result, Statistics)

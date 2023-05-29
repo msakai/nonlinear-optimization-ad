@@ -25,6 +25,11 @@ source-repository head
   type: git
   location: https://github.com/msakai/numeric-optimization
 
+flag with-cg-descent
+  description: Enable CGDescent optimization algorithm provided by nonlinear-optimization package and CG_DESCENT-C library. Since they are licensed under GPL, setting this flag True implies that resulting binary is also under GPL.
+  manual: True
+  default: False
+
 library
   exposed-modules:
       Numeric.Optimization
@@ -38,10 +43,15 @@ library
     , data-default-class >=0.1.2.0 && <0.2
     , hmatrix >=0.20.0.0
     , lbfgs ==0.1.*
-    , nonlinear-optimization >=0.3.7 && <0.4
     , primitive >=0.6.4.0
     , vector >=0.12.0.2 && <0.14
   default-language: Haskell2010
+  if flag(with-cg-descent)
+    cpp-options: -DWITH_CG_DESCENT
+    build-depends:
+        nonlinear-optimization >=0.3.7 && <0.4
+  else
+    cpp-options:  
 
 test-suite numeric-optimization-test
   type: exitcode-stdio-1.0

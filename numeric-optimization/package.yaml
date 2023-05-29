@@ -19,6 +19,12 @@ category:            Math, Algorithms, Optimisation, Optimization
 # common to point users to the README.md file.
 description:         Please see the README on GitHub at <https://github.com/msakai/nonlinear-optimization-ad>
 
+flags:
+  with-cg-descent:
+    description: Enable CGDescent optimization algorithm provided by nonlinear-optimization package and CG_DESCENT-C library. Since they are licensed under GPL, setting this flag True implies that resulting binary is also under GPL.
+    default: False
+    manual: True
+
 dependencies:
 - base >=4.12 && <5
 
@@ -39,9 +45,17 @@ library:
   - data-default-class >=0.1.2.0 && <0.2
   - hmatrix >=0.20.0.0
   - lbfgs >=0.1 && <0.2
-  - nonlinear-optimization >=0.3.7 && <0.4
   - primitive >=0.6.4.0
   - vector >=0.12.0.2 && <0.14
+  when:   
+    - condition: flag(with-cg-descent)
+      then:
+        dependencies:
+        - nonlinear-optimization >=0.3.7 && <0.4
+        cpp-options: "-DWITH_CG_DESCENT"
+      else:
+        # dummy for avoiding "'else' branch of 'if' is empty" error on old Cabal
+        cpp-options: " "
 
 tests:
   numeric-optimization-test:
