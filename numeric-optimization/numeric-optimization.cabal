@@ -7,7 +7,7 @@ cabal-version: 1.12
 name:           numeric-optimization
 version:        0.1.0.0
 synopsis:       Unified interface to various numerical optimization algorithms
-description:    Please see the README on GitHub at <https://github.com/msakai/nonlinear-optimization-ad>
+description:    Please see the README on GitHub at <https://github.com/msakai/nonlinear-optimization-ad/tree/numeric-optimization-package/numeric-optimization#readme>
 category:       Math, Algorithms, Optimisation, Optimization
 homepage:       https://github.com/msakai/numeric-optimization#readme
 bug-reports:    https://github.com/msakai/numeric-optimization/issues
