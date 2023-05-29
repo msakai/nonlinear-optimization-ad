@@ -1,0 +1,69 @@
+name:                numeric-optimization
+version:             0.1.0.0
+github:              "msakai/numeric-optimization"
+license:             BSD3
+author:              "Masahiro Sakai"
+maintainer:          "masahiro.sakai@gmail.com"
+copyright:           "Masahiro Sakai &lt;masahiro.sakai@gmail.com&gt;"
+
+extra-source-files:
+- README.md
+- CHANGELOG.md
+
+# Metadata used when publishing your package
+synopsis:            Unified interface to various numerical optimization algorithms
+category:            Math, Algorithms, Optimisation, Optimization
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Please see the README on GitHub at <https://github.com/msakai/nonlinear-optimization-ad/tree/numeric-optimization-package/numeric-optimization#readme>
+
+flags:
+  with-cg-descent:
+    description: Enable CGDescent optimization algorithm provided by nonlinear-optimization package and CG_DESCENT-C library. Since they are licensed under GPL, setting this flag True implies that resulting binary is also under GPL.
+    default: False
+    manual: True
+
+dependencies:
+- base >=4.12 && <5
+
+ghc-options:
+- -Wall
+- -Wcompat
+- -Widentities
+- -Wincomplete-record-updates
+- -Wincomplete-uni-patterns
+- -Wmissing-export-lists
+- -Wmissing-home-modules
+- -Wpartial-fields
+- -Wredundant-constraints
+
+library:
+  source-dirs: src
+  dependencies:
+  - data-default-class >=0.1.2.0 && <0.2
+  - hmatrix >=0.20.0.0
+  - lbfgs >=0.1 && <0.2
+  - primitive >=0.6.4.0
+  - vector >=0.12.0.2 && <0.14
+  when:   
+    - condition: flag(with-cg-descent)
+      then:
+        dependencies:
+        - nonlinear-optimization >=0.3.7 && <0.4
+        cpp-options: "-DWITH_CG_DESCENT"
+      else:
+        # dummy for avoiding "'else' branch of 'if' is empty" error on old Cabal
+        cpp-options: " "
+
+tests:
+  numeric-optimization-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - numeric-optimization
