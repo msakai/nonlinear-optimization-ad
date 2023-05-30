@@ -56,7 +56,7 @@ import Numeric.Optimization hiding (minimize, IsProblem (..))
 data Problem f
   = Problem
       (forall s. Reifies s Tape => f (Reverse s Double) -> Reverse s Double)
-      (V.Vector (Double, Double))
+      (Maybe (V.Vector (Double, Double)))
       [Constraint]
       Int
       (f Int)
@@ -120,11 +120,8 @@ minimize method params f bounds constraints x0 = do
       template :: f Int
       (size, template) = mapAccumL (\i _ -> i `seq` (i+1, i)) 0 x0
 
-      bounds' :: V.Vector (Double, Double)
-      bounds' =
-        case bounds of
-          Just bs -> toVector size bs
-          Nothing -> VG.replicate size (-1/0, 1/0)
+      bounds' :: Maybe (V.Vector (Double, Double))
+      bounds' = fmap (toVector size) bounds
 
       prob = Problem f bounds' constraints size template
       params' =

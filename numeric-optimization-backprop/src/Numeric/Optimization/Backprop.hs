@@ -52,7 +52,7 @@ import Numeric.Optimization.Backprop.ToVector
 data Problem a
   = Problem
       (forall s. Reifies s W => BVar s a -> BVar s Double)
-      (V.Vector (Double, Double))
+      (Maybe (V.Vector (Double, Double)))
       [Constraint]
       a
 
@@ -96,11 +96,8 @@ minimize
   -> a -- ^ Initial value
   -> IO (a, Result, Statistics)
 minimize method params f bounds constraints x0 = do
-  let bounds' :: V.Vector (Double, Double)
-      bounds' =
-        case bounds of
-          Nothing -> VG.replicate (dim x0) (-1/0, 1/0)
-          Just bs -> VG.fromList bs
+  let bounds' :: Maybe (V.Vector (Double, Double))
+      bounds' = fmap VG.fromList bounds
 
       prob :: Problem a
       prob = Problem f bounds' constraints x0

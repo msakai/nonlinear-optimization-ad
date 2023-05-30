@@ -55,6 +55,7 @@ import Data.Coerce
 import Data.Constraint (Dict (..))
 import Data.Default.Class
 import Data.IORef
+import Data.Maybe
 import qualified Data.Vector as V
 import Data.Vector.Storable (Vector)
 import qualified Data.Vector.Generic as VG
@@ -175,13 +176,14 @@ class IsProblem prob where
 
   -- | Bounds
   --
-  bounds :: prob -> V.Vector (Double, Double)
+  bounds :: prob -> Maybe (V.Vector (Double, Double))
+  bounds _ = Nothing
 
   -- | Constraints
   constraints :: prob -> [Constraint]
   constraints _ = []
 
-  {-# MINIMAL func, bounds #-}
+  {-# MINIMAL func #-}
 
 
 -- | Optimization problem equipped with gradient information
@@ -280,7 +282,7 @@ minimize method = \_ _ _ -> throwIO (UnsupportedMethod method)
 #ifdef WITH_CG_DESCENT
 
 minimize_CGDescent :: HasGrad prob => Params (Vector Double) -> prob -> Vector Double -> IO (Vector Double, Result, Statistics)
-minimize_CGDescent _params prob _ | not (isUnconstainedBounds (bounds prob)) = throwIO (UnsupportedProblem "CGDescent does not support bounds")
+minimize_CGDescent _params prob _ | not (isNothing (bounds prob)) = throwIO (UnsupportedProblem "CGDescent does not support bounds")
 minimize_CGDescent _params prob _ | not (null (constraints prob)) = throwIO (UnsupportedProblem "CGDescent does not support constraints")
 minimize_CGDescent _params prob x0 = do
   let grad_tol = 1e-6
@@ -349,7 +351,7 @@ minimize_CGDescent _params prob x0 = do
 
 
 minimize_LBFGS :: HasGrad prob => Params (Vector Double) -> prob -> Vector Double -> IO (Vector Double, Result, Statistics)
-minimize_LBFGS _params prob _ | not (isUnconstainedBounds (bounds prob)) = throwIO (UnsupportedProblem "LBFGS does not support bounds")
+minimize_LBFGS _params prob _ | not (isNothing (bounds prob)) = throwIO (UnsupportedProblem "LBFGS does not support bounds")
 minimize_LBFGS _params prob _ | not (null (constraints prob)) = throwIO (UnsupportedProblem "LBFGS does not support constraints")
 minimize_LBFGS params prob x0 = do
   evalCounter <- newIORef (0::Int)
