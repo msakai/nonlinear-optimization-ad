@@ -48,7 +48,7 @@ packages:
 extra-deps:
 - nonlinear-optimization-0.3.12.1@sha256:2b4efff8549256c2a301d28c7c21edddab0d30a16add8b9dbb02343901bf1212,2634
 - git: https://github.com/msakai/lbfgs-hs.git
-  commit: 5bf9992f020f6e370a60755239060c02ad444a36
+  commit: 700f5a2295ff8a7f2ffb1ef3e9407e2468f683b7
 
 # Override default flag values for local packages and extra-deps
 # flags: {}

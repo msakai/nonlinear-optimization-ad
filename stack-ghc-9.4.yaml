@@ -50,8 +50,8 @@ extra-deps:
   commit: 3d1bc729df511ed7c6635a23fb191aef313e4583
 - git: https://github.com/msakai/backprop.git
   commit: 24f4129a9c83f23016eafec7f75d1cce55f5a1b0
-- git: https://github.com/msakai/lbfgs-hs.git
-  commit: 5bf9992f020f6e370a60755239060c02ad444a36
+- git: https://github.com/wavewave/lbfgs-hs.git
+  commit: 700f5a2295ff8a7f2ffb1ef3e9407e2468f683b7
 
 # Override default flag values for local packages and extra-deps
 # flags: {}
