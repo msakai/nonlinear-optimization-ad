@@ -266,12 +266,12 @@ minimize
   -> IO (Vector Double, Result, Statistics)
 #ifdef WITH_CG_DESCENT
 minimize CGDescent =
-  case optionalDict @ (HasGrad prob) of
+  case optionalDict @(HasGrad prob) of
     Just Dict -> minimize_CGDescent
     Nothing -> \_ _ _ -> throwIO GradUnavailable
 #endif
 minimize LBFGS =
-  case optionalDict @ (HasGrad prob) of
+  case optionalDict @(HasGrad prob) of
     Just Dict -> minimize_LBFGS
     Nothing -> \_ _ _ -> throwIO GradUnavailable
 minimize method = \_ _ _ -> throwIO (UnsupportedMethod method)
