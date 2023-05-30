@@ -110,13 +110,13 @@ isSupportedMethod CGDescent = False
 
 
 -- | Parameters for optimization algorithms
-data Params
+data Params a
   = Params
-  { callback :: Maybe (Vector Double -> IO Bool)
+  { callback :: Maybe (a -> IO Bool)
     -- ^ If callback returns @True@, the algorithm execution is terminated.
   }
 
-instance Default Params where
+instance Default (Params a) where
   def =
     Params
     { callback = Nothing
@@ -260,7 +260,7 @@ isUnconstainedBounds = V.all p
 minimize
   :: forall prob. (IsProblem prob, Optionally (HasGrad prob), Optionally (HasHessian prob))
   => Method  -- ^ Numerical optimization algorithm to use
-  -> Params  -- ^ Parameters for optimization algorithms. Use 'def' as a default.
+  -> Params (Vector Double) -- ^ Parameters for optimization algorithms. Use 'def' as a default.
   -> prob  -- ^ Optimization problem to solve
   -> Vector Double  -- ^ Initial value
   -> IO (Vector Double, Result, Statistics)
@@ -279,7 +279,7 @@ minimize method = \_ _ _ -> throwIO (UnsupportedMethod method)
 
 #ifdef WITH_CG_DESCENT
 
-minimize_CGDescent :: HasGrad prob => Params -> prob -> Vector Double -> IO (Vector Double, Result, Statistics)
+minimize_CGDescent :: HasGrad prob => Params (Vector Double) -> prob -> Vector Double -> IO (Vector Double, Result, Statistics)
 minimize_CGDescent _params prob _ | not (isUnconstainedBounds (bounds prob)) = throwIO (UnsupportedProblem "CGDescent does not support bounds")
 minimize_CGDescent _params prob _ | not (null (constraints prob)) = throwIO (UnsupportedProblem "CGDescent does not support constraints")
 minimize_CGDescent _params prob x0 = do
@@ -348,7 +348,7 @@ minimize_CGDescent _params prob x0 = do
 #endif
 
 
-minimize_LBFGS :: HasGrad prob => Params -> prob -> Vector Double -> IO (Vector Double, Result, Statistics)
+minimize_LBFGS :: HasGrad prob => Params (Vector Double) -> prob -> Vector Double -> IO (Vector Double, Result, Statistics)
 minimize_LBFGS _params prob _ | not (isUnconstainedBounds (bounds prob)) = throwIO (UnsupportedProblem "LBFGS does not support bounds")
 minimize_LBFGS _params prob _ | not (null (constraints prob)) = throwIO (UnsupportedProblem "LBFGS does not support constraints")
 minimize_LBFGS params prob x0 = do

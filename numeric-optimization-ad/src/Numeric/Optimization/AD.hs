@@ -50,21 +50,7 @@ import Numeric.AD.Internal.Reverse (Tape)
 import Numeric.AD.Mode.Reverse (Reverse, auto)
 import qualified Numeric.AD.Mode.Reverse as AD
 import qualified Numeric.Optimization as Opt
-import Numeric.Optimization hiding (minimize, Params (..), IsProblem (..))
-
-
--- | Parameters for optimization algorithms
-data Params f
-  = Params
-  { callback :: Maybe (f Double -> IO Bool)
-    -- ^ If callback returns @True@, the algorithm execution is terminated.
-  }
-
-instance Default (Params f) where
-  def =
-    Params
-    { callback = Nothing
-    }
+import Numeric.Optimization hiding (minimize, IsProblem (..))
 
 
 data Problem f
@@ -123,7 +109,7 @@ writeToMVector x vec = do
 minimize
   :: forall f. Traversable f
   => Method  -- ^ Numerical optimization algorithm to use
-  -> Params f  -- ^ Parameters for optimization algorithms. Use 'def' as a default.
+  -> Params (f Double)  -- ^ Parameters for optimization algorithms. Use 'def' as a default.
   -> (forall s. Reifies s Tape => f (Reverse s Double) -> Reverse s Double)  -- ^ Function to be minimized.
   -> Maybe (f (Double, Double))  -- ^ Bounds
   -> [Constraint]  -- ^ Constraintsa
@@ -142,7 +128,7 @@ minimize method params f bounds constraints x0 = do
 
       prob = Problem f bounds' constraints size template
       params' =
-        Opt.Params
+        Params
         { Opt.callback = fmap (\cb -> cb . fromVector template) (callback params)
         }
 

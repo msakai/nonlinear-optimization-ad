@@ -19,6 +19,7 @@ There are also companion packages for using with automatic differentiation:
 
 * `numerical-optimization-ad` for using with [ad](https://hackage.haskell.org/package/ad) package
 * `numerical-optimization-backprop` for using with [backprop](https://hackage.haskell.org/package/backprop) package
+* [MIP](https://hackage.haskell.org/package/MIP) for solving linear programming and mixed-integer linear programming problems
 
 ## LICENSE
 
