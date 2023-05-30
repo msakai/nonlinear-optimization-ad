@@ -184,6 +184,7 @@ class IsProblem prob where
   {-# MINIMAL func, bounds #-}
 
 
+-- | Optimization problem equipped with gradient information
 class IsProblem prob => HasGrad prob where
   -- | Gradient of a function computed by 'func'
   --
@@ -209,6 +210,7 @@ class IsProblem prob => HasGrad prob where
   {-# MINIMAL grad | grad' | grad'M #-}
 
 
+-- | Optimization problem equipped with hessian information
 class IsProblem prob => HasHessian prob where
   -- | Hessian of a function computed by 'func'
   --
@@ -226,10 +228,12 @@ class IsProblem prob => HasHessian prob where
   {-# MINIMAL hessian #-}
 
 
+-- | Optional constraint
 class Optionally c where
   optionalDict :: Maybe (Dict c)
 
 
+-- | Utility function to define 'Optionally' instances
 hasOptionalDict :: c => Maybe (Dict c)
 hasOptionalDict = Just Dict
 
