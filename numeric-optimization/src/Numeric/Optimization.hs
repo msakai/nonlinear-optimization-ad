@@ -1,6 +1,9 @@
 {-# OPTIONS_GHC -Wall #-}
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numeric.Optimization
@@ -33,6 +36,10 @@ module Numeric.Optimization
 
   -- * Problem definition
   , IsProblem (..)
+  , HasGrad (..)
+  , HasHessian (..)
+  , Optionally (..)
+  , hasOptionalDict
   , Constraint (..)
   , boundsUnconstrained
   , isUnconstainedBounds
@@ -45,6 +52,7 @@ import Control.Exception
 import Control.Monad.Primitive
 import Control.Monad.ST
 import Data.Coerce
+import Data.Constraint (Dict (..))
 import Data.Default.Class
 import Data.IORef
 import qualified Data.Vector as V
@@ -151,6 +159,8 @@ data Statistics
 data OptimizationException
   = UnsupportedProblem String
   | UnsupportedMethod Method
+  | GradUnavailable
+  | HessianUnavailable
   deriving (Show)
 
 instance Exception OptimizationException
@@ -162,8 +172,19 @@ class IsProblem prob where
   --
   -- It is called @fun@ in @scipy.optimize.minimize@.
   func :: prob -> Vector Double -> Double
-  func prob = fst . grad' prob
 
+  -- | Bounds
+  --
+  bounds :: prob -> V.Vector (Double, Double)
+
+  -- | Constraints
+  constraints :: prob -> [Constraint]
+  constraints _ = []
+
+  {-# MINIMAL func, bounds #-}
+
+
+class IsProblem prob => HasGrad prob where
   -- | Gradient of a function computed by 'func'
   --
   -- It is called @jac@ in @scipy.optimize.minimize@.
@@ -185,6 +206,10 @@ class IsProblem prob where
     VG.imapM_ (VGM.write gvec) (grad prob x)
     return y
 
+  {-# MINIMAL grad | grad' | grad'M #-}
+
+
+class IsProblem prob => HasHessian prob where
   -- | Hessian of a function computed by 'func'
   --
   -- It is called @hess@ in @scipy.optimize.minimize@.
@@ -198,15 +223,15 @@ class IsProblem prob where
   hessianProduct :: prob -> Vector Double -> Vector Double -> Vector Double
   hessianProduct prob x v = hessian prob x LA.#> v
 
-  -- | Bounds
-  --
-  bounds :: prob -> V.Vector (Double, Double)
+  {-# MINIMAL hessian #-}
 
-  -- | Constraints
-  constraints :: prob -> [Constraint]
-  constraints _ = []
 
-  {-# MINIMAL ((func, grad) | grad' | grad'M), hessian, bounds #-}
+class Optionally c where
+  optionalDict :: Maybe (Dict c)
+
+
+hasOptionalDict :: c => Maybe (Dict c)
+hasOptionalDict = Just Dict
 
 
 -- | Type of constraint
@@ -229,22 +254,28 @@ isUnconstainedBounds = V.all p
 --
 -- This function is intended to provide functionality similar to Python's @scipy.optimize.minimize@.
 minimize
-  :: IsProblem prob
+  :: forall prob. (IsProblem prob, Optionally (HasGrad prob), Optionally (HasHessian prob))
   => Method  -- ^ Numerical optimization algorithm to use
   -> Params  -- ^ Parameters for optimization algorithms. Use 'def' as a default.
   -> prob  -- ^ Optimization problem to solve
   -> Vector Double  -- ^ Initial value
   -> IO (Vector Double, Result, Statistics)
 #ifdef WITH_CG_DESCENT
-minimize CGDescent = minimize_CGDescent
+minimize CGDescent =
+  case optionalDict @ (HasGrad prob) of
+    Just Dict -> minimize_CGDescent
+    Nothing -> \_ _ _ -> throwIO GradUnavailable
 #endif
-minimize LBFGS = minimize_LBFGS
+minimize LBFGS =
+  case optionalDict @ (HasGrad prob) of
+    Just Dict -> minimize_LBFGS
+    Nothing -> \_ _ _ -> throwIO GradUnavailable
 minimize method = \_ _ _ -> throwIO (UnsupportedMethod method)
 
 
 #ifdef WITH_CG_DESCENT
 
-minimize_CGDescent :: IsProblem prob => Params -> prob -> Vector Double -> IO (Vector Double, Result, Statistics)
+minimize_CGDescent :: HasGrad prob => Params -> prob -> Vector Double -> IO (Vector Double, Result, Statistics)
 minimize_CGDescent _params prob _ | not (isUnconstainedBounds (bounds prob)) = throwIO (UnsupportedProblem "CGDescent does not support bounds")
 minimize_CGDescent _params prob _ | not (null (constraints prob)) = throwIO (UnsupportedProblem "CGDescent does not support constraints")
 minimize_CGDescent _params prob x0 = do
@@ -313,7 +344,7 @@ minimize_CGDescent _params prob x0 = do
 #endif
 
 
-minimize_LBFGS :: IsProblem prob => Params -> prob -> Vector Double -> IO (Vector Double, Result, Statistics)
+minimize_LBFGS :: HasGrad prob => Params -> prob -> Vector Double -> IO (Vector Double, Result, Statistics)
 minimize_LBFGS _params prob _ | not (isUnconstainedBounds (bounds prob)) = throwIO (UnsupportedProblem "LBFGS does not support bounds")
 minimize_LBFGS _params prob _ | not (null (constraints prob)) = throwIO (UnsupportedProblem "LBFGS does not support constraints")
 minimize_LBFGS params prob x0 = do

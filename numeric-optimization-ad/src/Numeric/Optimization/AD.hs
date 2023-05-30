@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 -----------------------------------------------------------------------------
@@ -74,11 +75,15 @@ data Problem f
       Int
       (f Int)
 
-
 instance Traversable f => Opt.IsProblem (Problem f) where
   func (Problem f _bounds _constraints _size template) x =
     fst $ AD.grad' f (fromVector template x)
 
+  bounds (Problem _f bounds _constraints _size _template) = bounds
+
+  constraints (Problem _f _bounds constraints _size _template) = constraints
+
+instance Traversable f => Opt.HasGrad (Problem f) where
   grad (Problem func _bounds _constraints size template) =
     toVector size . AD.grad func . fromVector template
 
@@ -88,13 +93,11 @@ instance Traversable f => Opt.IsProblem (Problem f) where
         writeToMVector g gvec
         return y
 
-  hessian (Problem _func _bounds _constraints _size _template) = undefined
+instance Traversable f => Opt.Optionally (Opt.HasGrad (Problem f)) where
+  optionalDict = hasOptionalDict
 
-  hessianProduct (Problem _func _bounds _constraints _size _template) = undefined
-
-  bounds (Problem _f bounds _constraints _size _template) = bounds
-
-  constraints (Problem _f _bounds constraints _size _template) = constraints
+instance Opt.Optionally (Opt.HasHessian (Problem f)) where
+  optionalDict = Nothing
 
 
 fromVector :: (Functor f, VG.Vector v a) => f Int -> v a -> f a

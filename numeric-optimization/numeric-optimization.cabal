@@ -47,6 +47,7 @@ library
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
       base >=4.12 && <5
+    , constraints
     , data-default-class >=0.1.2.0 && <0.2
     , hmatrix >=0.20.0.0
     , lbfgs ==0.1.*
