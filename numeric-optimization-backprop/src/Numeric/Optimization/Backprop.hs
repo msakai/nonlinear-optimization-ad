@@ -41,24 +41,11 @@ module Numeric.Optimization.Backprop
 import Data.Default.Class
 import qualified Data.Vector as V
 import qualified Data.Vector.Generic as VG
+import qualified Data.Vector.Storable as VS
 import Numeric.Backprop
 import qualified Numeric.Optimization as Opt
-import Numeric.Optimization hiding (minimize, Params (..), IsProblem (..))
+import Numeric.Optimization hiding (minimize, IsProblem (..))
 import Numeric.Optimization.Backprop.ToVector
-
-
--- | Parameters for optimization algorithms
-data Params a
-  = Params
-  { callback :: Maybe (a -> IO Bool)
-    -- ^ If callback returns @True@, the algorithm execution is terminated.
-  }
-
-instance Default (Params f) where
-  def =
-    Params
-    { callback = Nothing
-    }
 
 
 data Problem a
@@ -111,9 +98,9 @@ minimize method params f bounds constraints x0 = do
       prob :: Problem a
       prob = Problem f bounds' constraints x0
 
-      params' :: Opt.Params
+      params' :: Params (VS.Vector Double)
       params' =
-        Opt.Params
+        Params
         { Opt.callback = fmap (\cb -> cb . updateFromVector x0) (callback params)
         }
 
