@@ -17,6 +17,13 @@ copyright:      Masahiro Sakai &lt;masahiro.sakai@gmail.com&gt;
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
+tested-with:
+    GHC == 9.4.5
+  , GHC == 9.2.7
+  , GHC == 9.0.2
+  , GHC == 8.10.7
+  , GHC == 8.8.4
+  , GHC == 8.6.5
 extra-source-files:
     README.md
     CHANGELOG.md

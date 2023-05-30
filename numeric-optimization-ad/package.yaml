@@ -19,6 +19,14 @@ category:            Math, Algorithms, Optimisation, Optimization
 # common to point users to the README.md file.
 description:         Please see the README on GitHub at <https://github.com/msakai/nonlinear-optimization-ad/tree/numeric-optimization-package/numeric-optimization-ad#readme>
 
+tested-with:
+- GHC == 9.4.5
+- GHC == 9.2.7
+- GHC == 9.0.2
+- GHC == 8.10.7
+- GHC == 8.8.4
+- GHC == 8.6.5
+
 dependencies:
 - base >=4.12 && <5
 - data-default-class
