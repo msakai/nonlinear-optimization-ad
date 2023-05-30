@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -59,6 +60,12 @@ data Problem a
 instance (Backprop a, ToVector a) => Opt.IsProblem (Problem a) where
   func (Problem f _bounds _constraints x0) x = evalBP f (updateFromVector x0 x)
 
+  bounds (Problem _f bounds _constraints _template) = bounds
+
+  constraints (Problem _f _bounds constraints _template) = constraints
+
+
+instance (Backprop a, ToVector a) => Opt.HasGrad (Problem a) where
   grad (Problem f _bounds _constraints x0) x = toVector $ gradBP f (updateFromVector x0 x)
 
   grad'M (Problem f _bounds _constraints x0) x gvec = do
@@ -67,13 +74,13 @@ instance (Backprop a, ToVector a) => Opt.IsProblem (Problem a) where
         writeToMVector g gvec
         return y
 
-  hessian (Problem _func _bounds _constraints _template) = undefined
 
-  hessianProduct (Problem _func _bounds _constraints _template) = undefined
+instance (Backprop a, ToVector a) => Opt.Optionally (Opt.HasGrad (Problem a)) where
+  optionalDict = hasOptionalDict
 
-  bounds (Problem _f bounds _constraints _template) = bounds
 
-  constraints (Problem _f _bounds constraints _template) = constraints
+instance Opt.Optionally (Opt.HasHessian (Problem a)) where
+  optionalDict = Nothing
 
 
 -- | Minimization of scalar function of one or more variables.
