@@ -1,2 +1,15 @@
 packages: nonlinear-optimization-ad/
           nonlinear-optimization-backprop/
+          numeric-optimization/
+          numeric-optimization-ad/
+          numeric-optimization-backprop/
+
+source-repository-package
+    type: git
+    location: https://github.com/wavewave/lbfgs-hs.git
+    tag: 700f5a2295ff8a7f2ffb1ef3e9407e2468f683b7
+
+source-repository-package
+    type: git
+    location: https://github.com/msakai/nonlinear-optimization.git
+    tag: 3d1bc729df511ed7c6635a23fb191aef313e4583
