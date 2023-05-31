@@ -44,8 +44,11 @@ module Numeric.Optimization
   , Constraint (..)
   , boundsUnconstrained
   , isUnconstainedBounds
-  -- ** WithGrad
+  -- ** Wrapper types
   , WithGrad (..)
+  , WithHessian (..)
+  , WithBounds (..)
+  , WithConstraints (..)
 
   -- * Re-exports
   , Default (..)
@@ -472,6 +475,7 @@ instance Optionally (HasHessian (Vector Double -> Double)) where
 
 -- ------------------------------------------------------------------------
 
+-- | Wrapper type for adding gradient function to a problem
 data WithGrad prob = WithGrad prob (Vector Double -> Vector Double)
 
 instance IsProblem prob => IsProblem (WithGrad prob) where
@@ -495,3 +499,91 @@ instance Optionally (HasHessian prob) => Optionally (HasHessian (WithGrad prob))
       Just Dict -> hasOptionalDict
       Nothing -> Nothing
 
+-- ------------------------------------------------------------------------
+
+-- | Wrapper type for adding hessian to a problem
+data WithHessian prob = WithHessian prob (Vector Double -> Matrix Double)
+
+instance IsProblem prob => IsProblem (WithHessian prob) where
+  func (WithHessian prob _hess) = func prob
+  bounds (WithHessian prob _hess) = bounds prob
+  constraints (WithHessian prob _hess) = constraints prob
+
+instance HasGrad prob => HasGrad (WithHessian prob) where
+  grad (WithHessian prob _) = grad prob
+
+instance IsProblem prob => HasHessian (WithHessian prob) where
+  hessian (WithHessian _prob hess) = hess
+
+instance Optionally (HasGrad prob) => Optionally (HasGrad (WithHessian prob)) where
+  optionalDict =
+    case optionalDict @(HasGrad prob) of
+      Just Dict -> hasOptionalDict
+      Nothing -> Nothing
+
+instance IsProblem prob => Optionally (HasHessian (WithHessian prob)) where
+  optionalDict = hasOptionalDict
+
+-- ------------------------------------------------------------------------
+
+-- | Wrapper type for adding bounds to a problem
+data WithBounds prob = WithBounds prob (V.Vector (Double, Double))
+
+instance IsProblem prob => IsProblem (WithBounds prob) where
+  func (WithBounds prob _bounds) = func prob
+  bounds (WithBounds _prob bounds) = Just bounds
+  constraints (WithBounds prob _bounds) = constraints prob
+
+instance HasGrad prob => HasGrad (WithBounds prob) where
+  grad (WithBounds prob _bounds) = grad prob
+  grad' (WithBounds prob _bounds) = grad' prob
+  grad'M (WithBounds prob _bounds) = grad'M prob
+
+instance HasHessian prob => HasHessian (WithBounds prob) where
+  hessian (WithBounds prob _bounds) = hessian prob
+  hessianProduct (WithBounds prob _bounds) = hessianProduct prob
+
+instance Optionally (HasGrad prob) => Optionally (HasGrad (WithBounds prob)) where
+  optionalDict =
+    case optionalDict @(HasGrad prob) of
+      Just Dict -> hasOptionalDict
+      Nothing -> Nothing
+
+instance Optionally (HasHessian prob) => Optionally (HasHessian (WithBounds prob)) where
+  optionalDict =
+    case optionalDict @(HasHessian prob) of
+      Just Dict -> hasOptionalDict
+      Nothing -> Nothing
+
+-- ------------------------------------------------------------------------
+
+-- | Wrapper type for adding constraints to a problem
+data WithConstraints prob = WithConstraints prob [Constraint]
+
+instance IsProblem prob => IsProblem (WithConstraints prob) where
+  func (WithConstraints prob _constraints) = func prob
+  bounds (WithConstraints prob _constraints) = bounds prob
+  constraints (WithConstraints _prob constraints) = constraints
+
+instance HasGrad prob => HasGrad (WithConstraints prob) where
+  grad (WithConstraints prob _constraints) = grad prob
+  grad' (WithConstraints prob _constraints) = grad' prob
+  grad'M (WithConstraints prob _constraints) = grad'M prob
+
+instance HasHessian prob => HasHessian (WithConstraints prob) where
+  hessian (WithConstraints prob _constraints) = hessian prob
+  hessianProduct (WithConstraints prob _constraints) = hessianProduct prob
+
+instance Optionally (HasGrad prob) => Optionally (HasGrad (WithConstraints prob)) where
+  optionalDict =
+    case optionalDict @(HasGrad prob) of
+      Just Dict -> hasOptionalDict
+      Nothing -> Nothing
+
+instance Optionally (HasHessian prob) => Optionally (HasHessian (WithConstraints prob)) where
+  optionalDict =
+    case optionalDict @(HasHessian prob) of
+      Just Dict -> hasOptionalDict
+      Nothing -> Nothing
+
+-- ------------------------------------------------------------------------
