@@ -2,6 +2,7 @@
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
 -----------------------------------------------------------------------------
@@ -454,3 +455,15 @@ minimize_LBFGS params prob x0 = do
       , hessEvals = 0
       }
     )
+
+
+-- ------------------------------------------------------------------------
+
+instance IsProblem (Vector Double -> Double) where
+  func f = f
+
+instance Optionally (HasGrad (Vector Double -> Double)) where
+  optionalDict = Nothing
+
+instance Optionally (HasHessian (Vector Double -> Double)) where
+  optionalDict = Nothing
