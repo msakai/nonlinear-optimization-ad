@@ -44,6 +44,8 @@ module Numeric.Optimization
   , Constraint (..)
   , boundsUnconstrained
   , isUnconstainedBounds
+  -- ** WithGrad
+  , WithGrad (..)
 
   -- * Re-exports
   , Default (..)
@@ -467,3 +469,29 @@ instance Optionally (HasGrad (Vector Double -> Double)) where
 
 instance Optionally (HasHessian (Vector Double -> Double)) where
   optionalDict = Nothing
+
+-- ------------------------------------------------------------------------
+
+data WithGrad prob = WithGrad prob (Vector Double -> Vector Double)
+
+instance IsProblem prob => IsProblem (WithGrad prob) where
+  func (WithGrad prob _g) = func prob
+  bounds (WithGrad prob _g) = bounds prob
+  constraints (WithGrad prob _g) = constraints prob
+
+instance IsProblem prob => HasGrad (WithGrad prob) where
+  grad (WithGrad _prob g) = g
+
+instance HasHessian prob => HasHessian (WithGrad prob) where
+  hessian (WithGrad prob _g) = hessian prob
+  hessianProduct (WithGrad prob _g) = hessianProduct prob
+
+instance IsProblem prob => Optionally (HasGrad (WithGrad prob)) where
+  optionalDict = hasOptionalDict
+
+instance Optionally (HasHessian prob) => Optionally (HasHessian (WithGrad prob)) where
+  optionalDict =
+    case optionalDict @(HasHessian prob) of
+      Just Dict -> hasOptionalDict
+      Nothing -> Nothing
+
