@@ -33,6 +33,11 @@ flags:
     default: False
     manual: True
 
+  build-examples:
+    description: Build example programs
+    default: False
+    manual: True
+
 dependencies:
 - base >=4.12 && <5
 - data-default-class >=0.1.2.0 && <0.2
@@ -65,6 +70,17 @@ library:
       else:
         # dummy for avoiding "'else' branch of 'if' is empty" error on old Cabal
         cpp-options: " "
+
+executables:
+  rosenbrock:
+    main:                rosenbrock.hs
+    source-dirs:         examples
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - numeric-optimization
 
 tests:
   numeric-optimization-test:

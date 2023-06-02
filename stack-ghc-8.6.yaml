@@ -55,6 +55,7 @@ extra-deps:
 flags:
   numeric-optimization:
     with-cg-descent: true
+    build-examples: true
 
 # Extra package databases containing global packages
 # extra-package-dbs: []

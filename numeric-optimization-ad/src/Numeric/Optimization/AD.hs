@@ -106,6 +106,26 @@ writeToMVector x vec = do
 -- | Minimization of scalar function of one or more variables.
 --
 -- This is a wrapper of 'Opt.minimize' and use "Numeric.AD.Mode.Reverse" to compute gradient.
+--
+-- Example:
+--
+-- > {-# LANGUAGE FlexibleContexts #-}
+-- > import Numeric.Optimization.AD
+-- > 
+-- > main :: IO ()
+-- > main = do
+-- >   (x, result, stat) <- minimize LBFGS def rosenbrock Nothing [] [-3,-4]
+-- >   print x  -- [0.999999999009131,0.9999999981094296]
+-- >   print (resultSuccess result)  -- True
+-- >   print (resultValue result)  -- 1.8129771632403013e-18
+-- > 
+-- > -- https://en.wikipedia.org/wiki/Rosenbrock_function
+-- > rosenbrock :: Floating a => [a] -> a
+-- > -- rosenbrock :: Reifies s Tape => [Reverse s Double] -> Reverse s Double
+-- > rosenbrock [x,y] = sq (1 - x) + 100 * sq (y - sq x)
+-- > 
+-- > sq :: Floating a => a -> a
+-- > sq x = x ** 2
 minimize
   :: forall f. Traversable f
   => Method  -- ^ Numerical optimization algorithm to use

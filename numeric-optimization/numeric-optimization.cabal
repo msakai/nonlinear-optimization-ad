@@ -32,6 +32,11 @@ source-repository head
   type: git
   location: https://github.com/msakai/numeric-optimization
 
+flag build-examples
+  description: Build example programs
+  manual: True
+  default: False
+
 flag with-cg-descent
   description: Enable CGDescent optimization algorithm provided by nonlinear-optimization package and CG_DESCENT-C library. Since they are licensed under GPL, setting this flag True implies that resulting binary is also under GPL.
   manual: True
@@ -60,6 +65,20 @@ library
         nonlinear-optimization >=0.3.7 && <0.4
   else
     cpp-options:  
+
+executable rosenbrock
+  main-is: rosenbrock.hs
+  other-modules:
+      Paths_numeric_optimization
+  hs-source-dirs:
+      examples
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.12 && <5
+    , data-default-class >=0.1.2.0 && <0.2
+    , numeric-optimization
+    , vector >=0.12.0.2 && <0.14
+  default-language: Haskell2010
 
 test-suite numeric-optimization-test
   type: exitcode-stdio-1.0

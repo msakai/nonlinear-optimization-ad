@@ -1,10 +1,3 @@
-# numeric-optimization-ad
-
-Wrapper of [numeric-optimization](https://hackage.haskell.org/package/numeric-optimization) package for using with [ad](https://hackage.haskell.org/package/ad) package
-
-## Example Usage
-
-```haskell
 {-# LANGUAGE FlexibleContexts #-}
 import Numeric.Optimization.AD
 
@@ -22,4 +15,3 @@ rosenbrock [x,y] = sq (1 - x) + 100 * sq (y - sq x)
 
 sq :: Floating a => a -> a
 sq x = x ** 2
-```

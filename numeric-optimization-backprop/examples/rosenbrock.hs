@@ -1,10 +1,3 @@
-# numeric-optimization-backprop
-
-Wrapper of [numeric-optimization](https://hackage.haskell.org/package/numeric-optimization) package for using with [backprop](https://hackage.haskell.org/package/backprop) package.
-
-## Example Usage
-
-```haskell
 {-# LANGUAGE FlexibleContexts #-}
 import Numeric.Optimization.Backprop
 import Lens.Micro
@@ -25,4 +18,3 @@ rosenbrock t = sq (1 - x) + 100 * sq (y - sq x)
 
 sq :: Floating a => a -> a
 sq x = x ** 2
-```
