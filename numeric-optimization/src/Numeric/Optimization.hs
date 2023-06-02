@@ -36,6 +36,8 @@ module Numeric.Optimization
   , OptimizationException (..)
 
   -- * Problem definition
+  --
+  -- $problemDefinition
   , IsProblem (..)
   , HasGrad (..)
   , HasHessian (..)
@@ -173,6 +175,29 @@ data OptimizationException
 instance Exception OptimizationException
 
 
+
+-- $problemDefinition
+--
+-- Problems are specified by types of 'IsProblem' type class.
+--
+-- In the simplest case, @'VS.Vector' Double -> Double@ is a instance
+-- of 'IsProblem' class. It is enough if your problem does not have
+-- constraints and the selected algorithm does not further information
+-- (e.g. gradients and hessians),
+--
+-- You can equip a problem with other information using wrapper types:
+--
+-- * 'WithBounds'
+--
+-- * 'WithConstraints'
+--
+-- * 'WithGrad'
+--
+-- * 'WithHessian'
+--
+-- If you need further flexibility or efficient implementation, you can
+-- define instance of 'IsProblem' by yourself.
+
 -- | Optimization problems
 class IsProblem prob where
   -- | Objective function
@@ -265,6 +290,33 @@ isUnconstainedBounds = V.all p
 -- | Minimization of scalar function of one or more variables.
 --
 -- This function is intended to provide functionality similar to Python's @scipy.optimize.minimize@.
+--
+-- Example:
+--
+-- > {-# LANGUAGE OverloadedLists #-}
+-- >
+-- > import Data.Vector.Storable (Vector)
+-- > import Numeric.Optimization
+-- >
+-- > main :: IO ()
+-- > main = do
+-- >   (x, result, stat) <- minimize LBFGS def (WithGrad rosenbrock rosenbrock') [-3,-4]
+-- >   print x  -- [0.999999999009131,0.9999999981094296]
+-- >   print (resultSuccess result)  -- True
+-- >   print (resultValue result)  -- 1.8129771632403013e-18
+-- >
+-- > -- https://en.wikipedia.org/wiki/Rosenbrock_function
+-- > rosenbrock :: Vector Double -> Double
+-- > rosenbrock [x,y] = sq (1 - x) + 100 * sq (y - sq x)
+-- >
+-- > rosenbrock' :: Vector Double -> Vector Double
+-- > rosenbrock' [x,y] =
+-- >   [ 2 * (1 - x) * (-1) + 100 * 2 * (y - sq x) * (-2) * x
+-- >   , 100 * 2 * (y - sq x)
+-- >   ]
+-- >
+-- > sq :: Floating a => a -> a
+-- > sq x = x ** 2
 minimize
   :: forall prob. (IsProblem prob, Optionally (HasGrad prob), Optionally (HasHessian prob))
   => Method  -- ^ Numerical optimization algorithm to use
