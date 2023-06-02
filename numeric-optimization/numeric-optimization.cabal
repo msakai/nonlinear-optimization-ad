@@ -65,11 +65,17 @@ test-suite numeric-optimization-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      IsClose
       Paths_numeric_optimization
   hs-source-dirs:
       test
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.12 && <5
+      HUnit >=1.6.0.0 && <1.7
+    , base >=4.12 && <5
+    , containers >=0.6.0.1 && <0.7
+    , data-default-class >=0.1.2.0 && <0.2
+    , hspec >=2.7.1 && <3.0
     , numeric-optimization
+    , vector >=0.12.0.2 && <0.14
   default-language: Haskell2010
