@@ -23,18 +23,23 @@ module Numeric.Optimization.Backprop
   (
   -- * Main function
     minimize
+
+  -- * Problem specification
+  , Constraint (..)
+
+  -- * Algorithm selection
   , Method (..)
+  , isSupportedMethod
   , Params (..)
+
+  -- * Result
   , Result (..)
   , Statistics (..)
   , OptimizationException (..)
-  , ToVector
 
-  -- * Problem definition
-  , Constraint (..)
-
-  -- * Re-exports
+  -- * Utilities and Re-exports
   , Default (..)
+  , ToVector
   , module Numeric.Backprop
   ) where
 

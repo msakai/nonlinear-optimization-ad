@@ -28,21 +28,13 @@ module Numeric.Optimization
 
   -- * Main function
     minimize
-  , Method (..)
-  , isSupportedMethod
-  , Params (..)
-  , Result (..)
-  , Statistics (..)
-  , OptimizationException (..)
 
-  -- * Problem definition
+  -- * Problem specification
   --
   -- $problemDefinition
   , IsProblem (..)
   , HasGrad (..)
   , HasHessian (..)
-  , Optionally (..)
-  , hasOptionalDict
   , Constraint (..)
   , boundsUnconstrained
   , isUnconstainedBounds
@@ -52,8 +44,20 @@ module Numeric.Optimization
   , WithBounds (..)
   , WithConstraints (..)
 
-  -- * Re-exports
+  -- * Algorithm selection
+  , Method (..)
+  , isSupportedMethod
+  , Params (..)
+
+  -- * Result
+  , Result (..)
+  , Statistics (..)
+  , OptimizationException (..)
+
+  -- * Utilities and Re-export
   , Default (..)
+  , Optionally (..)
+  , hasOptionalDict
   ) where
 
 import Control.Exception

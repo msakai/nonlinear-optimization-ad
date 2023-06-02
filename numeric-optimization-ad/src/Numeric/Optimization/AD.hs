@@ -20,16 +20,21 @@ module Numeric.Optimization.AD
   (
   -- * Main function
     minimize
+
+  -- * Problem specification
+  , Constraint (..)
+
+  -- * Algorithm selection
   , Method (..)
+  , isSupportedMethod
   , Params (..)
+
+  -- * Result
   , Result (..)
   , Statistics (..)
   , OptimizationException (..)
 
-  -- * Problem definition
-  , Constraint (..)
-
-  -- * Re-exports
+  -- * Utilities and Re-exports
   , Default (..)
   , auto
   , Reverse
