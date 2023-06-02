@@ -102,8 +102,8 @@ instance Opt.Optionally (Opt.HasHessian (Problem a)) where
 -- > main :: IO ()
 -- > main = do
 -- >   (x, result, stat) <- minimize LBFGS def rosenbrock Nothing [] (-3,-4)
--- >   print x  -- [0.999999999009131,0.9999999981094296]
 -- >   print (resultSuccess result)  -- True
+-- >   print (resultSolution result)  -- [0.999999999009131,0.9999999981094296]
 -- >   print (resultValue result)  -- 1.8129771632403013e-18
 -- > 
 -- > -- https://en.wikipedia.org/wiki/Rosenbrock_function
@@ -123,7 +123,7 @@ minimize
   -> Maybe [(Double, Double)]  -- ^ Bounds
   -> [Constraint]  -- ^ Constraints
   -> a -- ^ Initial value
-  -> IO (a, Result a, Statistics)
+  -> IO (Result a)
 minimize method params f bounds constraints x0 = do
   let bounds' :: Maybe (V.Vector (Double, Double))
       bounds' = fmap VG.fromList bounds
@@ -134,5 +134,5 @@ minimize method params f bounds constraints x0 = do
       params' :: Params (VS.Vector Double)
       params' = contramap (updateFromVector x0) params
 
-  (x, result, stat) <- Opt.minimize method params' prob (toVector x0)
-  return (updateFromVector x0 x, fmap (updateFromVector x0) result, stat)
+  result <- Opt.minimize method params' prob (toVector x0)
+  return $ fmap (updateFromVector x0) result

@@ -160,6 +160,8 @@ data Result a
     -- ^ Whether or not the optimizer exited successfully.
   , resultMessage :: String
     -- ^ Description of the cause of the termination.
+  , resultSolution :: a
+    -- ^ Solution
   , resultValue :: Double
     -- ^ Value of the function at the solution.
   , resultGrad :: a
@@ -168,10 +170,16 @@ data Result a
     -- ^ Hessian at the solution; may be an approximation.
   , resultHessianInv :: Maybe (Matrix Double)
     -- ^ Inverse of Hessian at the solution; may be an approximation.
+  , resultStatistics :: Statistics
+    -- ^ Statistics of optimizaion process
   }
 
 instance Functor Result where
-  fmap f result = result{ resultGrad = f (resultGrad result) }
+  fmap f result =
+    result
+    { resultSolution = f (resultSolution result)
+    , resultGrad = f (resultGrad result)
+    }
 
 
 -- | Statistics of optimizaion process
@@ -325,8 +333,8 @@ isUnconstainedBounds = V.all p
 -- > main :: IO ()
 -- > main = do
 -- >   (x, result, stat) <- minimize LBFGS def (WithGrad rosenbrock rosenbrock') [-3,-4]
--- >   print x  -- [0.999999999009131,0.9999999981094296]
 -- >   print (resultSuccess result)  -- True
+-- >   print (resultSolution result)  -- [0.999999999009131,0.9999999981094296]
 -- >   print (resultValue result)  -- 1.8129771632403013e-18
 -- >
 -- > -- https://en.wikipedia.org/wiki/Rosenbrock_function
@@ -347,7 +355,7 @@ minimize
   -> Params (Vector Double) -- ^ Parameters for optimization algorithms. Use 'def' as a default.
   -> prob  -- ^ Optimization problem to solve
   -> Vector Double  -- ^ Initial value
-  -> IO (Vector Double, Result (Vector Double), Statistics)
+  -> IO (Result (Vector Double))
 #ifdef WITH_CG_DESCENT
 minimize CGDescent =
   case optionalDict @(HasGrad prob) of
@@ -363,7 +371,7 @@ minimize method = \_ _ _ -> throwIO (UnsupportedMethod method)
 
 #ifdef WITH_CG_DESCENT
 
-minimize_CGDescent :: HasGrad prob => Params (Vector Double) -> prob -> Vector Double -> IO (Vector Double, Result (Vector Double), Statistics)
+minimize_CGDescent :: HasGrad prob => Params (Vector Double) -> prob -> Vector Double -> IO (Result (Vector Double))
 minimize_CGDescent _params prob _ | not (isNothing (bounds prob)) = throwIO (UnsupportedProblem "CGDescent does not support bounds")
 minimize_CGDescent _params prob _ | not (null (constraints prob)) = throwIO (UnsupportedProblem "CGDescent does not support constraints")
 minimize_CGDescent params prob x0 = do
@@ -411,28 +419,28 @@ minimize_CGDescent params prob x0 = do
           CG.FunctionValueNaN         -> (False, "function value became nan")
           CG.StartFunctionValueNaN    -> (False, "starting function value is nan")
 
-  return
-    ( x
-    , Result
-      { resultSuccess = success
-      , resultMessage = msg
-      , resultValue = CG.finalValue stat
-      , resultGrad = grad prob x
-      , resultHessian = Nothing
-      , resultHessianInv = Nothing
-      }
-    , Statistics
-      { totalIters = fromIntegral $ CG.totalIters stat
-      , funcEvals = fromIntegral $ CG.funcEvals stat
-      , gradEvals = fromIntegral $ CG.gradEvals stat
-      , hessEvals = 0
-      }
-    )
+  return $
+    Result
+    { resultSuccess = success
+    , resultMessage = msg
+    , resultSolution = x
+    , resultValue = CG.finalValue stat
+    , resultGrad = grad prob x
+    , resultHessian = Nothing
+    , resultHessianInv = Nothing
+    , resultStatistics =
+        Statistics
+        { totalIters = fromIntegral $ CG.totalIters stat
+        , funcEvals = fromIntegral $ CG.funcEvals stat
+        , gradEvals = fromIntegral $ CG.gradEvals stat
+        , hessEvals = 0
+        }
+    }
 
 #endif
 
 
-minimize_LBFGS :: HasGrad prob => Params (Vector Double) -> prob -> Vector Double -> IO (Vector Double, Result (Vector Double), Statistics)
+minimize_LBFGS :: HasGrad prob => Params (Vector Double) -> prob -> Vector Double -> IO (Result (Vector Double))
 minimize_LBFGS _params prob _ | not (isNothing (bounds prob)) = throwIO (UnsupportedProblem "LBFGS does not support bounds")
 minimize_LBFGS _params prob _ | not (null (constraints prob)) = throwIO (UnsupportedProblem "LBFGS does not support constraints")
 minimize_LBFGS params prob x0 = do
@@ -519,24 +527,23 @@ minimize_LBFGS params prob x0 = do
 
   nEvals <- readIORef evalCounter
 
-  return
-    ( x
-    , Result
-      { resultSuccess = success
-      , resultMessage = msg
-      , resultValue = y
-      , resultGrad = g
-      , resultHessian = Nothing
-      , resultHessianInv = Nothing
-      }
-    , Statistics
-      { totalIters = undefined
-      , funcEvals = nEvals + 1
-      , gradEvals = nEvals + 1
-      , hessEvals = 0
-      }
-    )
-
+  return $
+    Result
+    { resultSuccess = success
+    , resultMessage = msg
+    , resultSolution = x
+    , resultValue = y
+    , resultGrad = g
+    , resultHessian = Nothing
+    , resultHessianInv = Nothing
+    , resultStatistics =
+        Statistics
+        { totalIters = undefined
+        , funcEvals = nEvals + 1
+        , gradEvals = nEvals + 1
+        , hessEvals = 0
+        }
+    }
 
 -- ------------------------------------------------------------------------
 

@@ -121,8 +121,8 @@ writeToMVector x vec = do
 -- > main :: IO ()
 -- > main = do
 -- >   (x, result, stat) <- minimize LBFGS def rosenbrock Nothing [] [-3,-4]
--- >   print x  -- [0.999999999009131,0.9999999981094296]
 -- >   print (resultSuccess result)  -- True
+-- >   print (resultSolution result)  -- [0.999999999009131,0.9999999981094296]
 -- >   print (resultValue result)  -- 1.8129771632403013e-18
 -- > 
 -- > -- https://en.wikipedia.org/wiki/Rosenbrock_function
@@ -140,7 +140,7 @@ minimize
   -> Maybe (f (Double, Double))  -- ^ Bounds
   -> [Constraint]  -- ^ Constraintsa
   -> f Double -- ^ Initial value
-  -> IO (f Double, Result (f Double), Statistics)
+  -> IO (Result (f Double))
 minimize method params f bounds constraints x0 = do
   let size :: Int
       template :: f Int
@@ -152,5 +152,5 @@ minimize method params f bounds constraints x0 = do
       prob = Problem f bounds' constraints size template
       params' = contramap (fromVector template) params
 
-  (x, result, stat) <- Opt.minimize method params' prob (toVector size x0)
-  return (fromVector template x, fmap (fromVector template) result, stat)
+  result <- Opt.minimize method params' prob (toVector size x0)
+  return $ fmap (fromVector template) result
