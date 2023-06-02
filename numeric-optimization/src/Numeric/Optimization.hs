@@ -164,7 +164,7 @@ data Result a
     -- ^ Solution
   , resultValue :: Double
     -- ^ Value of the function at the solution.
-  , resultGrad :: a
+  , resultGrad :: Maybe a
     -- ^ Gradient at the solution
   , resultHessian :: Maybe (Matrix Double)
     -- ^ Hessian at the solution; may be an approximation.
@@ -178,7 +178,7 @@ instance Functor Result where
   fmap f result =
     result
     { resultSolution = f (resultSolution result)
-    , resultGrad = f (resultGrad result)
+    , resultGrad = fmap f (resultGrad result)
     }
 
 
@@ -425,7 +425,7 @@ minimize_CGDescent params prob x0 = do
     , resultMessage = msg
     , resultSolution = x
     , resultValue = CG.finalValue stat
-    , resultGrad = grad prob x
+    , resultGrad = Nothing
     , resultHessian = Nothing
     , resultHessianInv = Nothing
     , resultStatistics =
@@ -523,7 +523,6 @@ minimize_LBFGS params prob x0 = do
           LBFGS.WidthTooSmall          -> (False, "Relative width of the interval of uncertainty is at most lbfgs_parameter_t::xtol.")
           LBFGS.InvalidParameters      -> (False, "A logic error (negative line-search step) occurred.")
           LBFGS.IncreaseGradient       -> (False, "The current search direction increases the objective function value.")
-      (y, g) = grad' prob x
 
   nEvals <- readIORef evalCounter
 
@@ -532,8 +531,8 @@ minimize_LBFGS params prob x0 = do
     { resultSuccess = success
     , resultMessage = msg
     , resultSolution = x
-    , resultValue = y
-    , resultGrad = g
+    , resultValue = func prob x
+    , resultGrad = Nothing
     , resultHessian = Nothing
     , resultHessianInv = Nothing
     , resultStatistics =
