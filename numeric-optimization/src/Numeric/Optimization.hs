@@ -124,6 +124,12 @@ isSupportedMethod CGDescent = False
 
 
 -- | Parameters for optimization algorithms
+--
+-- TODO:
+--
+-- * How to pass algorithm specific parameters?
+--
+-- * Separate 'callback' from other more concrete serializeable parameters?
 data Params a
   = Params
   { callback :: Maybe (a -> IO Bool)
