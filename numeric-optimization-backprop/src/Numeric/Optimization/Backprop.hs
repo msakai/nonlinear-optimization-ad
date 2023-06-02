@@ -63,7 +63,7 @@ data Problem a
       a
 
 
-instance (Backprop a, ToVector a) => Opt.IsProblem (Problem a) where
+instance (ToVector a) => Opt.IsProblem (Problem a) where
   func (Problem f _bounds _constraints x0) x = evalBP f (updateFromVector x0 x)
 
   bounds (Problem _f bounds _constraints _template) = bounds
