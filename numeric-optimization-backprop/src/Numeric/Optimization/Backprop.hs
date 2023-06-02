@@ -122,7 +122,7 @@ minimize
   -> Maybe [(Double, Double)]  -- ^ Bounds
   -> [Constraint]  -- ^ Constraints
   -> a -- ^ Initial value
-  -> IO (a, Result, Statistics)
+  -> IO (a, Result a, Statistics)
 minimize method params f bounds constraints x0 = do
   let bounds' :: Maybe (V.Vector (Double, Double))
       bounds' = fmap VG.fromList bounds
@@ -137,4 +137,4 @@ minimize method params f bounds constraints x0 = do
         }
 
   (x, result, stat) <- Opt.minimize method params' prob (toVector x0)
-  return (updateFromVector x0 x, result, stat)
+  return (updateFromVector x0 x, fmap (updateFromVector x0) result, stat)

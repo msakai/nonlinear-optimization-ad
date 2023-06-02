@@ -137,7 +137,7 @@ instance Default (Params a) where
 
 
 -- | Optimization result
-data Result
+data Result a
   = Result
   { resultSuccess :: Bool
     -- ^ Whether or not the optimizer exited successfully.
@@ -145,13 +145,16 @@ data Result
     -- ^ Description of the cause of the termination.
   , resultValue :: Double
     -- ^ Value of the function at the solution.
-  , resultGrad :: Vector Double
+  , resultGrad :: a
     -- ^ Gradient at the solution
   , resultHess :: Maybe (Matrix Double)
     -- ^ Hessian at the solution; may be an approximation.
   , resultHessInv :: Maybe (Matrix Double)
     -- ^ Inverse of Hessian at the solution; may be an approximation.
   }
+
+instance Functor Result where
+  fmap f result = result{ resultGrad = f (resultGrad result) }
 
 
 -- | Statistics of optimizaion process
@@ -327,7 +330,7 @@ minimize
   -> Params (Vector Double) -- ^ Parameters for optimization algorithms. Use 'def' as a default.
   -> prob  -- ^ Optimization problem to solve
   -> Vector Double  -- ^ Initial value
-  -> IO (Vector Double, Result, Statistics)
+  -> IO (Vector Double, Result (Vector Double), Statistics)
 #ifdef WITH_CG_DESCENT
 minimize CGDescent =
   case optionalDict @(HasGrad prob) of
@@ -343,7 +346,7 @@ minimize method = \_ _ _ -> throwIO (UnsupportedMethod method)
 
 #ifdef WITH_CG_DESCENT
 
-minimize_CGDescent :: HasGrad prob => Params (Vector Double) -> prob -> Vector Double -> IO (Vector Double, Result, Statistics)
+minimize_CGDescent :: HasGrad prob => Params (Vector Double) -> prob -> Vector Double -> IO (Vector Double, Result (Vector Double), Statistics)
 minimize_CGDescent _params prob _ | not (isNothing (bounds prob)) = throwIO (UnsupportedProblem "CGDescent does not support bounds")
 minimize_CGDescent _params prob _ | not (null (constraints prob)) = throwIO (UnsupportedProblem "CGDescent does not support constraints")
 minimize_CGDescent _params prob x0 = do
@@ -412,7 +415,7 @@ minimize_CGDescent _params prob x0 = do
 #endif
 
 
-minimize_LBFGS :: HasGrad prob => Params (Vector Double) -> prob -> Vector Double -> IO (Vector Double, Result, Statistics)
+minimize_LBFGS :: HasGrad prob => Params (Vector Double) -> prob -> Vector Double -> IO (Vector Double, Result (Vector Double), Statistics)
 minimize_LBFGS _params prob _ | not (isNothing (bounds prob)) = throwIO (UnsupportedProblem "LBFGS does not support bounds")
 minimize_LBFGS _params prob _ | not (null (constraints prob)) = throwIO (UnsupportedProblem "LBFGS does not support constraints")
 minimize_LBFGS params prob x0 = do

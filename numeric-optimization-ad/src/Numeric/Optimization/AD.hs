@@ -139,7 +139,7 @@ minimize
   -> Maybe (f (Double, Double))  -- ^ Bounds
   -> [Constraint]  -- ^ Constraintsa
   -> f Double -- ^ Initial value
-  -> IO (f Double, Result, Statistics)
+  -> IO (f Double, Result (f Double), Statistics)
 minimize method params f bounds constraints x0 = do
   let size :: Int
       template :: f Int
@@ -155,4 +155,4 @@ minimize method params f bounds constraints x0 = do
         }
 
   (x, result, stat) <- Opt.minimize method params' prob (toVector size x0)
-  return (fromVector template x, result, stat)
+  return (fromVector template x, fmap (fromVector template) result, stat)
