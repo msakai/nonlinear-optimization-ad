@@ -11,9 +11,9 @@ main = hspec $ do
   describe "minimize" $ do
     context "when given rosenbrock function" $
       it "returns the global optimum" $ do
-        (x, result, stat) <- minimize LBFGS def (WithGrad rosenbrock rosenbrock') [-3,-4]
+        result <- minimize LBFGS def (WithGrad rosenbrock rosenbrock') [-3,-4]
         resultSuccess result `shouldBe` True
-        assertAllClose (def :: Tol Double) x [1,1]
+        assertAllClose (def :: Tol Double) (resultSolution result) [1,1]
 
 
 -- https://en.wikipedia.org/wiki/Rosenbrock_function
