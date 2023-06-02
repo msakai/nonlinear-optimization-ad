@@ -20,6 +20,7 @@ module Numeric.Optimization.AD
   (
   -- * Main function
     minimize
+  , minimizeReverse
 
   -- * Problem specification
   , Constraint (..)
@@ -52,62 +53,46 @@ import Data.Traversable
 import qualified Data.Vector as V
 import qualified Data.Vector.Generic as VG
 import qualified Data.Vector.Generic.Mutable as VGM
+import Numeric.AD (auto)
 import Numeric.AD.Internal.Reverse (Tape)
-import Numeric.AD.Mode.Reverse (Reverse, auto)
-import qualified Numeric.AD.Mode.Reverse as AD
+import Numeric.AD.Mode.Reverse (Reverse)
+import qualified Numeric.AD.Mode.Reverse as Reverse
 import qualified Numeric.Optimization as Opt
 import Numeric.Optimization hiding (minimize, IsProblem (..))
 
+-- ------------------------------------------------------------------------
 
-data Problem f
-  = Problem
+data ProblemReverse f
+  = ProblemReverse
       (forall s. Reifies s Tape => f (Reverse s Double) -> Reverse s Double)
       (Maybe (V.Vector (Double, Double)))
       [Constraint]
       Int
       (f Int)
 
-instance Traversable f => Opt.IsProblem (Problem f) where
-  func (Problem f _bounds _constraints _size template) x =
-    fst $ AD.grad' f (fromVector template x)
+instance Traversable f => Opt.IsProblem (ProblemReverse f) where
+  func (ProblemReverse f _bounds _constraints _size template) x =
+    fst $ Reverse.grad' f (fromVector template x)
 
-  bounds (Problem _f bounds _constraints _size _template) = bounds
+  bounds (ProblemReverse _f bounds _constraints _size _template) = bounds
 
-  constraints (Problem _f _bounds constraints _size _template) = constraints
+  constraints (ProblemReverse _f _bounds constraints _size _template) = constraints
 
-instance Traversable f => Opt.HasGrad (Problem f) where
-  grad (Problem func _bounds _constraints size template) =
-    toVector size . AD.grad func . fromVector template
+instance Traversable f => Opt.HasGrad (ProblemReverse f) where
+  grad (ProblemReverse func _bounds _constraints size template) =
+    toVector size . Reverse.grad func . fromVector template
 
-  grad'M (Problem f _bounds _constraints _size template) x gvec = do
-    case AD.grad' f (fromVector template x) of
+  grad'M (ProblemReverse f _bounds _constraints _size template) x gvec = do
+    case Reverse.grad' f (fromVector template x) of
       (y, g) -> do
         writeToMVector g gvec
         return y
 
-instance Traversable f => Opt.Optionally (Opt.HasGrad (Problem f)) where
+instance Traversable f => Opt.Optionally (Opt.HasGrad (ProblemReverse f)) where
   optionalDict = hasOptionalDict
 
-instance Opt.Optionally (Opt.HasHessian (Problem f)) where
+instance Opt.Optionally (Opt.HasHessian (ProblemReverse f)) where
   optionalDict = Nothing
-
-
-fromVector :: (Functor f, VG.Vector v a) => f Int -> v a -> f a
-fromVector template x = fmap (x VG.!) template
-
-
-toVector :: (Traversable f, VG.Vector v a) => Int -> f a -> v a
-toVector size x = VG.create $ do
-  vec <- VGM.new size
-  writeToMVector x vec
-  return vec
-
-
-writeToMVector :: (PrimMonad m, VGM.MVector mv a, Traversable f) => f a -> mv (PrimState m) a -> m ()
-writeToMVector x vec = do
-  _ <- foldlM (\i v -> VGM.write vec i v >> return (i+1)) 0 x
-  return ()
-
 
 -- | Minimization of scalar function of one or more variables.
 --
@@ -120,7 +105,7 @@ writeToMVector x vec = do
 -- > 
 -- > main :: IO ()
 -- > main = do
--- >   (x, result, stat) <- minimize LBFGS def rosenbrock Nothing [] [-3,-4]
+-- >   (x, result, stat) <- minimizeReverse LBFGS def rosenbrock Nothing [] [-3,-4]
 -- >   print (resultSuccess result)  -- True
 -- >   print (resultSolution result)  -- [0.999999999009131,0.9999999981094296]
 -- >   print (resultValue result)  -- 1.8129771632403013e-18
@@ -132,16 +117,16 @@ writeToMVector x vec = do
 -- > 
 -- > sq :: Floating a => a -> a
 -- > sq x = x ** 2
-minimize
+minimizeReverse
   :: forall f. Traversable f
   => Method  -- ^ Numerical optimization algorithm to use
   -> Params (f Double)  -- ^ Parameters for optimization algorithms. Use 'def' as a default.
   -> (forall s. Reifies s Tape => f (Reverse s Double) -> Reverse s Double)  -- ^ Function to be minimized.
   -> Maybe (f (Double, Double))  -- ^ Bounds
-  -> [Constraint]  -- ^ Constraintsa
+  -> [Constraint]  -- ^ Constraints
   -> f Double -- ^ Initial value
   -> IO (Result (f Double))
-minimize method params f bounds constraints x0 = do
+minimizeReverse method params f bounds constraints x0 = do
   let size :: Int
       template :: f Int
       (size, template) = mapAccumL (\i _ -> i `seq` (i+1, i)) 0 x0
@@ -149,8 +134,40 @@ minimize method params f bounds constraints x0 = do
       bounds' :: Maybe (V.Vector (Double, Double))
       bounds' = fmap (toVector size) bounds
 
-      prob = Problem f bounds' constraints size template
+      prob = ProblemReverse f bounds' constraints size template
       params' = contramap (fromVector template) params
 
   result <- Opt.minimize method params' prob (toVector size x0)
   return $ fmap (fromVector template) result
+
+-- ------------------------------------------------------------------------
+
+-- | Synonym of 'minimizeReverse'
+minimize
+  :: forall f. Traversable f
+  => Method  -- ^ Numerical optimization algorithm to use
+  -> Params (f Double)  -- ^ Parameters for optimization algorithms. Use 'def' as a default.
+  -> (forall s. Reifies s Tape => f (Reverse s Double) -> Reverse s Double)  -- ^ Function to be minimized.
+  -> Maybe (f (Double, Double))  -- ^ Bounds
+  -> [Constraint]  -- ^ Constraints
+  -> f Double -- ^ Initial value
+  -> IO (Result (f Double))
+minimize = minimizeReverse
+
+-- ------------------------------------------------------------------------
+
+fromVector :: (Functor f, VG.Vector v a) => f Int -> v a -> f a
+fromVector template x = fmap (x VG.!) template
+
+toVector :: (Traversable f, VG.Vector v a) => Int -> f a -> v a
+toVector size x = VG.create $ do
+  vec <- VGM.new size
+  writeToMVector x vec
+  return vec
+
+writeToMVector :: (PrimMonad m, VGM.MVector mv a, Traversable f) => f a -> mv (PrimState m) a -> m ()
+writeToMVector x vec = do
+  _ <- foldlM (\i v -> VGM.write vec i v >> return (i+1)) 0 x
+  return ()
+
+-- ------------------------------------------------------------------------
