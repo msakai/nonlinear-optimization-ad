@@ -128,12 +128,16 @@ data Params a
   = Params
   { callback :: Maybe (a -> IO Bool)
     -- ^ If callback returns @True@, the algorithm execution is terminated.
+  , tol :: Maybe Double
+    -- ^ Tolerance for termination. When 'tol' is specified, the selected algorithm sets
+    -- some relevant solver-specific tolerance(s) equal to 'tol'.
   }
 
 instance Default (Params a) where
   def =
     Params
     { callback = Nothing
+    , tol = Nothing
     }
 
 instance Contravariant Params where
@@ -356,8 +360,8 @@ minimize method = \_ _ _ -> throwIO (UnsupportedMethod method)
 minimize_CGDescent :: HasGrad prob => Params (Vector Double) -> prob -> Vector Double -> IO (Vector Double, Result (Vector Double), Statistics)
 minimize_CGDescent _params prob _ | not (isNothing (bounds prob)) = throwIO (UnsupportedProblem "CGDescent does not support bounds")
 minimize_CGDescent _params prob _ | not (null (constraints prob)) = throwIO (UnsupportedProblem "CGDescent does not support constraints")
-minimize_CGDescent _params prob x0 = do
-  let grad_tol = 1e-6
+minimize_CGDescent params prob x0 = do
+  let grad_tol = fromMaybe 1e-6 $ tol params
 
       cg_params = CG.defaultParameters
 
@@ -432,7 +436,7 @@ minimize_LBFGS params prob x0 = do
   let lbfgsParams =
         LBFGS.LBFGSParameters
         { LBFGS.lbfgsPast = Nothing
-        , LBFGS.lbfgsDelta = 0
+        , LBFGS.lbfgsDelta = fromMaybe 0 $ tol params
         , LBFGS.lbfgsLineSearch = LBFGS.DefaultLineSearch
         , LBFGS.lbfgsL1NormCoefficient = Nothing
         }
