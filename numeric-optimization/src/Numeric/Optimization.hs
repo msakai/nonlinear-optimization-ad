@@ -154,9 +154,9 @@ data Result a
     -- ^ Value of the function at the solution.
   , resultGrad :: a
     -- ^ Gradient at the solution
-  , resultHess :: Maybe (Matrix Double)
+  , resultHessian :: Maybe (Matrix Double)
     -- ^ Hessian at the solution; may be an approximation.
-  , resultHessInv :: Maybe (Matrix Double)
+  , resultHessianInv :: Maybe (Matrix Double)
     -- ^ Inverse of Hessian at the solution; may be an approximation.
   }
 
@@ -408,8 +408,8 @@ minimize_CGDescent _params prob x0 = do
       , resultMessage = msg
       , resultValue = CG.finalValue stat
       , resultGrad = grad prob x
-      , resultHess = Nothing
-      , resultHessInv = Nothing
+      , resultHessian = Nothing
+      , resultHessianInv = Nothing
       }
     , Statistics
       { totalIters = fromIntegral $ CG.totalIters stat
@@ -516,8 +516,8 @@ minimize_LBFGS params prob x0 = do
       , resultMessage = msg
       , resultValue = y
       , resultGrad = g
-      , resultHess = Nothing
-      , resultHessInv = Nothing
+      , resultHessian = Nothing
+      , resultHessianInv = Nothing
       }
     , Statistics
       { totalIters = undefined
