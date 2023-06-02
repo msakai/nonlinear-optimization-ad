@@ -377,7 +377,10 @@ minimize_CGDescent _params prob _ | not (null (constraints prob)) = throwIO (Uns
 minimize_CGDescent params prob x0 = do
   let grad_tol = fromMaybe 1e-6 $ tol params
 
-      cg_params = CG.defaultParameters
+      cg_params =
+        CG.defaultParameters
+        { CG.printFinal = False
+        }
 
       mf :: forall m. PrimMonad m => CG.PointMVector m -> m Double
       mf mx = do
