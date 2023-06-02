@@ -66,6 +66,7 @@ import Control.Monad.ST
 import Data.Coerce
 import Data.Constraint (Dict (..))
 import Data.Default.Class
+import Data.Functor.Contravariant
 import Data.IORef
 import Data.Maybe
 import qualified Data.Vector as V
@@ -133,6 +134,12 @@ instance Default (Params a) where
   def =
     Params
     { callback = Nothing
+    }
+
+instance Contravariant Params where
+  contramap f params =
+    params
+    { callback = fmap ((. f)) (callback params)
     }
 
 

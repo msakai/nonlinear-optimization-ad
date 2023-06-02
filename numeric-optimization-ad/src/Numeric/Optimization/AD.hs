@@ -46,6 +46,7 @@ module Numeric.Optimization.AD
 import Control.Monad.Primitive
 import Data.Default.Class
 import Data.Foldable (foldlM)
+import Data.Functor.Contravariant
 import Data.Reflection (Reifies)
 import Data.Traversable
 import qualified Data.Vector as V
@@ -149,10 +150,7 @@ minimize method params f bounds constraints x0 = do
       bounds' = fmap (toVector size) bounds
 
       prob = Problem f bounds' constraints size template
-      params' =
-        Params
-        { Opt.callback = fmap (\cb -> cb . fromVector template) (callback params)
-        }
+      params' = contramap (fromVector template) params
 
   (x, result, stat) <- Opt.minimize method params' prob (toVector size x0)
   return (fromVector template x, fmap (fromVector template) result, stat)

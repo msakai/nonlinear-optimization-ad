@@ -45,6 +45,7 @@ module Numeric.Optimization.Backprop
 
 
 import Data.Default.Class
+import Data.Functor.Contravariant
 import qualified Data.Vector as V
 import qualified Data.Vector.Generic as VG
 import qualified Data.Vector.Storable as VS
@@ -131,10 +132,7 @@ minimize method params f bounds constraints x0 = do
       prob = Problem f bounds' constraints x0
 
       params' :: Params (VS.Vector Double)
-      params' =
-        Params
-        { Opt.callback = fmap (\cb -> cb . updateFromVector x0) (callback params)
-        }
+      params' = contramap (updateFromVector x0) params
 
   (x, result, stat) <- Opt.minimize method params' prob (toVector x0)
   return (updateFromVector x0 x, fmap (updateFromVector x0) result, stat)
