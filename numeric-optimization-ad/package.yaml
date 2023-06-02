@@ -47,6 +47,7 @@ library:
   source-dirs: src
   dependencies:
   - ad >=4.3.6 && <4.6
+  - hmatrix >=0.20.0.0
   - primitive >=0.6.4.0
   - reflection >=2.1.5
   - vector >=0.12.0.2 && <0.14
