@@ -1,5 +1,8 @@
 # numeric-optimization
 
+[![Hackage](https://img.shields.io/hackage/v/numeric-optimization.svg)](https://hackage.haskell.org/package/numeric-optimization)
+[![Hackage Deps](https://img.shields.io/hackage-deps/v/numeric-optimization.svg)](https://packdeps.haskellers.com/feed?needle=numeric-optimization)
+
 Unified interface to various numerical optimization algorithms.
 
 Note that the package name is numeric-optimization and not numeri**cal**-optimization.

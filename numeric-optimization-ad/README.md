@@ -1,5 +1,8 @@
 # numeric-optimization-ad
 
+[![Hackage](https://img.shields.io/hackage/v/numeric-optimization-ad.svg)](https://hackage.haskell.org/package/numeric-optimization-ad)
+[![Hackage Deps](https://img.shields.io/hackage-deps/v/numeric-optimization-ad.svg)](https://packdeps.haskellers.com/feed?needle=numeric-optimization-ad)
+
 Wrapper of [numeric-optimization](https://hackage.haskell.org/package/numeric-optimization) package for using with [ad](https://hackage.haskell.org/package/ad) package
 
 ## Example Usage
