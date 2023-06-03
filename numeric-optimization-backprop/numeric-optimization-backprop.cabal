@@ -9,8 +9,8 @@ version:        0.1.0.1
 synopsis:       Wrapper of numeric-optimization package for using with backprop package
 description:    Please see the README on GitHub at <https://github.com/msakai/nonlinear-optimization-ad/tree/master/numeric-optimization-backprop#readme>
 category:       Math, Algorithms, Optimisation, Optimization
-homepage:       https://github.com/msakai/numeric-optimization-backprop#readme
-bug-reports:    https://github.com/msakai/numeric-optimization-backprop/issues
+homepage:       https://github.com/msakai/nonlinear-optimization-ad#readme
+bug-reports:    https://github.com/msakai/nonlinear-optimization-ad/issues
 author:         Masahiro Sakai
 maintainer:     masahiro.sakai@gmail.com
 copyright:      Masahiro Sakai &lt;masahiro.sakai@gmail.com&gt;
@@ -30,7 +30,7 @@ extra-source-files:
 
 source-repository head
   type: git
-  location: https://github.com/msakai/numeric-optimization-backprop
+  location: https://github.com/msakai/nonlinear-optimization-ad
 
 library
   exposed-modules:

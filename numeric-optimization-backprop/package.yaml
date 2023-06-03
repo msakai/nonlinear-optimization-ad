@@ -1,6 +1,6 @@
 name:                numeric-optimization-backprop
 version:             0.1.0.1
-github:              "msakai/numeric-optimization-backprop"
+github:              "msakai/nonlinear-optimization-ad"
 license:             BSD3
 author:              "Masahiro Sakai"
 maintainer:          "masahiro.sakai@gmail.com"
