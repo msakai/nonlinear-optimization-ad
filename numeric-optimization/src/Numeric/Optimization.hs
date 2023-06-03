@@ -612,10 +612,10 @@ minimize_Newton params prob x0 = do
               , resultHessianInv = Nothing
               , resultStatistics =
                   Statistics
-                  { totalIters = n+1
-                  , funcEvals = n+1
-                  , gradEvals = n+1
-                  , hessEvals = n+1
+                  { totalIters = n
+                  , funcEvals = n
+                  , gradEvals = n
+                  , hessEvals = n
                   }
               }
   let (y0, g0) = grad' prob x0
