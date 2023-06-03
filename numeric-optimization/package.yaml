@@ -30,13 +30,13 @@ tested-with:
 flags:
   with-cg-descent:
     description: Enable CGDescent optimization algorithm provided by nonlinear-optimization package and CG_DESCENT-C library. Since they are licensed under GPL, setting this flag True implies that resulting binary is also under GPL.
-    default: False
-    manual: True
+    default: false
+    manual: true
 
   build-examples:
     description: Build example programs
-    default: False
-    manual: True
+    default: false
+    manual: true
 
 dependencies:
 - base >=4.12 && <5
@@ -81,6 +81,12 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - numeric-optimization
+    when:
+    - condition: flag(build-examples)
+      then:
+        buildable: true
+      else:
+        buildable: false
 
 tests:
   numeric-optimization-test:

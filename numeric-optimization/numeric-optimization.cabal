@@ -79,6 +79,10 @@ executable rosenbrock
     , numeric-optimization
     , vector >=0.12.0.2 && <0.14
   default-language: Haskell2010
+  if flag(build-examples)
+    buildable: True
+  else
+    buildable: False
 
 test-suite numeric-optimization-test
   type: exitcode-stdio-1.0

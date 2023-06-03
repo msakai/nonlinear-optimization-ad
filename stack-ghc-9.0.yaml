@@ -58,6 +58,10 @@ flags:
   numeric-optimization:
     with-cg-descent: true
     build-examples: true
+  numeric-optimization-ad:
+    build-examples: true
+  numeric-optimization-backprop:
+    build-examples: true
 
 # Extra package databases containing global packages
 # extra-package-dbs: []

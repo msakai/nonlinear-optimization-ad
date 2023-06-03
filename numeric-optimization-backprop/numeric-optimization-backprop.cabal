@@ -32,6 +32,11 @@ source-repository head
   type: git
   location: https://github.com/msakai/nonlinear-optimization-ad
 
+flag build-examples
+  description: Build example programs
+  manual: True
+  default: False
+
 library
   exposed-modules:
       Numeric.Optimization.Backprop
@@ -69,6 +74,10 @@ executable rosenbrock-backprop
     , numeric-optimization >=0.1.0.0 && <0.2.0.0
     , numeric-optimization-backprop
   default-language: Haskell2010
+  if flag(build-examples)
+    buildable: True
+  else
+    buildable: False
 
 test-suite numeric-optimization-backprop-test
   type: exitcode-stdio-1.0

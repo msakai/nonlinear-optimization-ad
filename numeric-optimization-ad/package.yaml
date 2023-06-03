@@ -27,6 +27,12 @@ tested-with:
 - GHC == 8.8.4
 - GHC == 8.6.5
 
+flags:
+  build-examples:
+    description: Build example programs
+    default: false
+    manual: true
+
 dependencies:
 - base >=4.12 && <5
 - data-default-class
@@ -62,6 +68,12 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - numeric-optimization-ad
+    when:
+    - condition: flag(build-examples)
+      then:
+        buildable: true
+      else:
+        buildable: false
 
 tests:
   numeric-optimization-ad-test:

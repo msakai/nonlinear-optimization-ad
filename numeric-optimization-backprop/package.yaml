@@ -27,6 +27,12 @@ tested-with:
 - GHC == 8.8.4
 - GHC == 8.6.5
 
+flags:
+  build-examples:
+    description: Build example programs
+    default: false
+    manual: true
+
 dependencies:
 - base >=4.12 && <5
 - containers >=0.6.0.1 && <0.7
@@ -65,6 +71,12 @@ executables:
     dependencies:
     - numeric-optimization-backprop
     - microlens >=0.4.10 && <0.5
+    when:
+    - condition: flag(build-examples)
+      then:
+        buildable: true
+      else:
+        buildable: false
 
 tests:
   numeric-optimization-backprop-test:
