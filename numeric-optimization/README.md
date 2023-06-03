@@ -41,6 +41,7 @@ sq x = x ** 2
 |---------|-------------------|---------------|-|
 |CG\_DESCENT|[CG_DESCENT-C](https://www.math.lsu.edu/~hozhang/SoftArchive/CG_DESCENT-C-3.0.tar.gz)|[nonlinear-optimization](https://hackage.haskell.org/package/nonlinear-optimization)|Requires `with-cg-descent` flag|
 |Limited memory BFGS (L-BFGS)|[liblbfgs](https://github.com/chokkan/liblbfgs)|[lbfgs](https://hackage.haskell.org/package/lbfgs)|
+|Newton's method|Pure Haskell implementation using [HMatrix](https://hackage.haskell.org/package/hmatrix)|-|
 
 
 ## Related Packages

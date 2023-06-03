@@ -1,4 +1,5 @@
 {-# OPTIONS_GHC -Wall #-}
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -91,6 +92,8 @@ data Method
     -- The implementation is provided by nonlinear-optimization package [3]
     -- which is a binding library of [2].
     --
+    -- This method requires gradient but does not require hessian.
+    --
     -- * [1] Hager, W. W. and Zhang, H.  /A new conjugate gradient/
     --   /method with guaranteed descent and an efficient line/
     --   /search./ Society of Industrial and Applied Mathematics
@@ -105,11 +108,17 @@ data Method
     -- The implementtion is provided by lbfgs package [2]
     -- which is a binding of liblbfgs [3].
     --
+    -- This method requires gradient but does not require hessian.
+    --
     -- * [1] <https://en.wikipedia.org/wiki/Limited-memory_BFGS>
     --
     -- * [2] <https://hackage.haskell.org/package/lbfgs>
     --
     -- * [3] <https://github.com/chokkan/liblbfgs>
+  | Newton
+    -- ^ Native implementation of Newton method
+    --
+    -- This method requires both gradient and hessian.
   deriving (Eq, Ord, Enum, Show, Bounded)
 
 
@@ -121,6 +130,7 @@ isSupportedMethod CGDescent = True
 #else
 isSupportedMethod CGDescent = False
 #endif
+isSupportedMethod Newton = True
 
 
 -- | Parameters for optimization algorithms
@@ -366,6 +376,13 @@ minimize LBFGS =
   case optionalDict @(HasGrad prob) of
     Just Dict -> minimize_LBFGS
     Nothing -> \_ _ _ -> throwIO GradUnavailable
+minimize Newton =
+  case optionalDict @(HasGrad prob) of
+    Nothing -> \_ _ _ -> throwIO GradUnavailable
+    Just Dict ->
+      case optionalDict @(HasHessian prob) of
+        Nothing -> \_ _ _ -> throwIO HessianUnavailable
+        Just Dict -> minimize_Newton
 minimize method = \_ _ _ -> throwIO (UnsupportedMethod method)
 
 
@@ -546,6 +563,64 @@ minimize_LBFGS params prob x0 = do
         , hessEvals = 0
         }
     }
+
+
+minimize_Newton :: (HasGrad prob, HasHessian prob) => Params (Vector Double) -> prob -> Vector Double -> IO (Result (Vector Double))
+minimize_Newton _params prob _ | not (isNothing (bounds prob)) = throwIO (UnsupportedProblem "Newton does not support bounds")
+minimize_Newton _params prob _ | not (null (constraints prob)) = throwIO (UnsupportedProblem "Newton does not support constraints")
+minimize_Newton params prob x0 = do
+  let t = fromMaybe 1e-6 (tol params)
+      loop !x !y !g !h !n = do
+        shouldStop <-
+          case callback params of
+            Just cb -> cb x
+            Nothing -> return False
+        if shouldStop then do
+          return $
+            Result
+            { resultSuccess = False
+            , resultMessage = "The minimization process has been canceled."
+            , resultSolution = x
+            , resultValue = y
+            , resultGrad = Just g
+            , resultHessian = Just h
+            , resultHessianInv = Nothing
+            , resultStatistics =
+                Statistics
+                { totalIters = n
+                , funcEvals = n
+                , gradEvals = n
+                , hessEvals = n
+                }
+            }
+        else do
+          let p = h LA.<\> g
+              x' = VG.zipWith (-) x p
+          if LA.norm_Inf (VG.zipWith (-) x' x) > t then do
+            let (y', g') = grad' prob x'
+                h' = hessian prob x'
+            loop x' y' g' h' (n+1)
+          else do
+            return $
+              Result
+              { resultSuccess = True
+              , resultMessage = "success"
+              , resultSolution = x
+              , resultValue = y
+              , resultGrad = Just g
+              , resultHessian = Just h
+              , resultHessianInv = Nothing
+              , resultStatistics =
+                  Statistics
+                  { totalIters = n+1
+                  , funcEvals = n+1
+                  , gradEvals = n+1
+                  , hessEvals = n+1
+                  }
+              }
+  let (y0, g0) = grad' prob x0
+      h0 = hessian prob x0
+  loop x0 y0 g0 h0 1
 
 -- ------------------------------------------------------------------------
 
