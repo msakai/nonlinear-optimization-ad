@@ -20,8 +20,10 @@
 -- optimization, like [scipy.optimize](https://docs.scipy.org/doc/scipy/reference/optimize.html) in Python.
 --
 -- In this module, you need to explicitly provide the function to calculate the
--- gradient, -- but you can use @numeric-optimization-ad@ or
--- @numeric-optimization-backprop@ to define it using automatic differentiation.
+-- gradient, but you can use
+-- [numeric-optimization-ad](https://hackage.haskell.org/package/numeric-optimization-ad) or
+-- [numeric-optimization-backprop](https://hackage.haskell.org/package/numeric-optimization-backprop)
+-- to define it using automatic differentiation.
 --
 -----------------------------------------------------------------------------
 module Numeric.Optimization
