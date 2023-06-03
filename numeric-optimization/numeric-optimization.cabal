@@ -13,7 +13,7 @@ homepage:       https://github.com/msakai/nonlinear-optimization-ad#readme
 bug-reports:    https://github.com/msakai/nonlinear-optimization-ad/issues
 author:         Masahiro Sakai
 maintainer:     masahiro.sakai@gmail.com
-copyright:      Masahiro Sakai &lt;masahiro.sakai@gmail.com&gt;
+copyright:      Copyright (c) 2023 Masahiro Sakai
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple

@@ -4,7 +4,7 @@ github:              "msakai/nonlinear-optimization-ad"
 license:             BSD3
 author:              "Masahiro Sakai"
 maintainer:          "masahiro.sakai@gmail.com"
-copyright:           "Masahiro Sakai &lt;masahiro.sakai@gmail.com&gt;"
+copyright:           "Copyright (c) 2023 Masahiro Sakai"
 
 extra-source-files:
 - README.md
