@@ -49,8 +49,8 @@ sq x = x ** 2
 ## Related Packages
 
 * Packages for using with automatic differentiation:
-  * [numerical-optimization-ad](https://hackage.haskell.org/package/numerical-optimization-ad) for using with [ad](https://hackage.haskell.org/package/ad) package
-  * [numerical-optimization-backprop](https://hackage.haskell.org/package/numerical-optimization-backprop) for using with [backprop](https://hackage.haskell.org/package/backprop) package
+  * [numeric-optimization-ad](https://hackage.haskell.org/package/numeric-optimization-ad) for using with [ad](https://hackage.haskell.org/package/ad) package
+  * [numeric-optimization-backprop](https://hackage.haskell.org/package/numeric-optimization-backprop) for using with [backprop](https://hackage.haskell.org/package/backprop) package
 * [MIP](https://hackage.haskell.org/package/MIP) for solving linear programming and mixed-integer linear programming problems
 
 ## LICENSE
