@@ -10,15 +10,14 @@ The name `numeric-optimization` comes from the module name `Numeric.Optimization
 
 ```haskell
 {-# LANGUAGE OverloadedLists #-}
-
 import Data.Vector.Storable (Vector)
 import Numeric.Optimization
 
 main :: IO ()
 main = do
-  (x, result, stat) <- minimize LBFGS def (WithGrad rosenbrock rosenbrock') [-3,-4]
-  print x  -- [0.999999999009131,0.9999999981094296]
+  result <- minimize LBFGS def (WithGrad rosenbrock rosenbrock') [-3,-4]
   print (resultSuccess result)  -- True
+  print (resultSolution result)  -- [0.999999999009131,0.9999999981094296]
   print (resultValue result)  -- 1.8129771632403013e-18
 
 -- https://en.wikipedia.org/wiki/Rosenbrock_function
