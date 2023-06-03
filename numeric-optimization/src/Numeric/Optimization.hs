@@ -142,9 +142,9 @@ isSupportedMethod Newton = True
 -- * Separate 'callback' from other more concrete serializeable parameters?
 data Params a
   = Params
-  { callback :: Maybe (a -> IO Bool)
-    -- ^ If callback returns @True@, the algorithm execution is terminated.
-  , tol :: Maybe Double
+  { paramsCallback :: Maybe (a -> IO Bool)
+    -- ^ If callback function returns @True@, the algorithm execution is terminated.
+  , paramsTol :: Maybe Double
     -- ^ Tolerance for termination. When 'tol' is specified, the selected algorithm sets
     -- some relevant solver-specific tolerance(s) equal to 'tol'.
   }
@@ -152,14 +152,14 @@ data Params a
 instance Default (Params a) where
   def =
     Params
-    { callback = Nothing
-    , tol = Nothing
+    { paramsCallback = Nothing
+    , paramsTol = Nothing
     }
 
 instance Contravariant Params where
   contramap f params =
     params
-    { callback = fmap ((. f)) (callback params)
+    { paramsCallback = fmap ((. f)) (paramsCallback params)
     }
 
 
@@ -392,7 +392,7 @@ minimize_CGDescent :: HasGrad prob => Params (Vector Double) -> prob -> Vector D
 minimize_CGDescent _params prob _ | not (isNothing (bounds prob)) = throwIO (UnsupportedProblem "CGDescent does not support bounds")
 minimize_CGDescent _params prob _ | not (null (constraints prob)) = throwIO (UnsupportedProblem "CGDescent does not support constraints")
 minimize_CGDescent params prob x0 = do
-  let grad_tol = fromMaybe 1e-6 $ tol params
+  let grad_tol = fromMaybe 1e-6 $ paramsTol params
 
       cg_params =
         CG.defaultParameters
@@ -470,7 +470,7 @@ minimize_LBFGS params prob x0 = do
   let lbfgsParams =
         LBFGS.LBFGSParameters
         { LBFGS.lbfgsPast = Nothing
-        , LBFGS.lbfgsDelta = fromMaybe 0 $ tol params
+        , LBFGS.lbfgsDelta = fromMaybe 0 $ paramsTol params
         , LBFGS.lbfgsLineSearch = LBFGS.DefaultLineSearch
         , LBFGS.lbfgsL1NormCoefficient = Nothing
         }
@@ -494,15 +494,15 @@ minimize_LBFGS params prob x0 = do
       progressFun _inst xvec _gvec _fx _xnorm _gnorm _step _n iter _nev = do
         writeIORef iterRef $! fromIntegral iter
         shouldStop <-
-          case callback params of
+          case paramsCallback params of
             Nothing -> return False
-            Just f -> do
+            Just callback -> do
 #if MIN_VERSION_vector(0,13,0)
               x <- VG.freeze (VSM.unsafeCoerceMVector xvec :: VSM.IOVector Double)
 #else
               x <- VG.freeze (coerce xvec :: VSM.IOVector Double)
 #endif
-              f x
+              callback x
         return $ if shouldStop then 1 else 0
 
   (result, x_) <- LBFGS.lbfgs lbfgsParams evalFun progressFun instanceData (VG.toList x0)
@@ -569,11 +569,11 @@ minimize_Newton :: (HasGrad prob, HasHessian prob) => Params (Vector Double) -> 
 minimize_Newton _params prob _ | not (isNothing (bounds prob)) = throwIO (UnsupportedProblem "Newton does not support bounds")
 minimize_Newton _params prob _ | not (null (constraints prob)) = throwIO (UnsupportedProblem "Newton does not support constraints")
 minimize_Newton params prob x0 = do
-  let t = fromMaybe 1e-6 (tol params)
+  let tol = fromMaybe 1e-6 (paramsTol params)
       loop !x !y !g !h !n = do
         shouldStop <-
-          case callback params of
-            Just cb -> cb x
+          case paramsCallback params of
+            Just callback -> callback x
             Nothing -> return False
         if shouldStop then do
           return $
@@ -596,7 +596,7 @@ minimize_Newton params prob x0 = do
         else do
           let p = h LA.<\> g
               x' = VG.zipWith (-) x p
-          if LA.norm_Inf (VG.zipWith (-) x' x) > t then do
+          if LA.norm_Inf (VG.zipWith (-) x' x) > tol then do
             let (y', g') = grad' prob x'
                 h' = hessian prob x'
             loop x' y' g' h' (n+1)
