@@ -1,5 +1,5 @@
 name:                numeric-optimization-ad
-version:             0.1.0.0
+version:             0.1.0.1
 github:              "msakai/numeric-optimization-ad"
 license:             BSD3
 author:              "Masahiro Sakai"

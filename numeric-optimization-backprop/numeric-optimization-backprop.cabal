@@ -5,7 +5,7 @@ cabal-version: 1.12
 -- see: https://github.com/sol/hpack
 
 name:           numeric-optimization-backprop
-version:        0.1.0.0
+version:        0.1.0.1
 synopsis:       Wrapper of numeric-optimization package for using with backprop package
 description:    Please see the README on GitHub at <https://github.com/msakai/nonlinear-optimization-ad/tree/master/numeric-optimization-backprop#readme>
 category:       Math, Algorithms, Optimisation, Optimization
