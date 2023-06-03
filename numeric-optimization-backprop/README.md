@@ -2,6 +2,7 @@
 
 [![Hackage](https://img.shields.io/hackage/v/numeric-optimization-backprop.svg)](https://hackage.haskell.org/package/numeric-optimization-backprop)
 [![Hackage Deps](https://img.shields.io/hackage-deps/v/numeric-optimization-backprop.svg)](https://packdeps.haskellers.com/feed?needle=numeric-optimization-backprop)
+[![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
 Wrapper of [numeric-optimization](https://hackage.haskell.org/package/numeric-optimization) package for using with [backprop](https://hackage.haskell.org/package/backprop) package.
 

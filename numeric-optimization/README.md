@@ -2,6 +2,7 @@
 
 [![Hackage](https://img.shields.io/hackage/v/numeric-optimization.svg)](https://hackage.haskell.org/package/numeric-optimization)
 [![Hackage Deps](https://img.shields.io/hackage-deps/v/numeric-optimization.svg)](https://packdeps.haskellers.com/feed?needle=numeric-optimization)
+[![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
 Unified interface to various numerical optimization algorithms.
 
