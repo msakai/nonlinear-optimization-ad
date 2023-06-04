@@ -18,7 +18,7 @@ license-file:        LICENSE
 copyright:           (c) 2020 Masahiro Sakai
 author:              Masahiro Sakai (masahiro.sakai@gmail.com)
 maintainer:          masahiro.sakai@gmail.com
-category:            Math, Algorithms, Optimisation, Optimization
+category:            Math, Algorithms, Optimisation, Optimization, Numeric, Numerical
 build-type:          Simple
 cabal-version:       >=1.10
 extra-source-files:

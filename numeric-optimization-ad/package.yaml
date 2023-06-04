@@ -12,7 +12,7 @@ extra-source-files:
 
 # Metadata used when publishing your package
 synopsis:            Wrapper of numeric-optimization package for using with AD package
-category:            Math, Algorithms, Optimisation, Optimization
+category:            Math, Algorithms, Optimisation, Optimization, Numeric, Numerical
 
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is

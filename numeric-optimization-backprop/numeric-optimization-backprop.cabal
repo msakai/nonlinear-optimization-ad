@@ -8,7 +8,7 @@ name:           numeric-optimization-backprop
 version:        0.1.0.1
 synopsis:       Wrapper of numeric-optimization package for using with backprop package
 description:    Please see the README on GitHub at <https://github.com/msakai/nonlinear-optimization-ad/tree/master/numeric-optimization-backprop#readme>
-category:       Math, Algorithms, Optimisation, Optimization
+category:       Math, Algorithms, Optimisation, Optimization, Numeric, Numerical
 homepage:       https://github.com/msakai/nonlinear-optimization-ad#readme
 bug-reports:    https://github.com/msakai/nonlinear-optimization-ad/issues
 author:         Masahiro Sakai
