@@ -33,6 +33,11 @@ flags:
     default: false
     manual: true
 
+  with-lbfgsb:
+    description: Enable L-BFGS-B
+    default: false
+    manual: true
+
   build-examples:
     description: Build example programs
     default: false
@@ -67,6 +72,14 @@ library:
         dependencies:
         - nonlinear-optimization >=0.3.7 && <0.4
         cpp-options: "-DWITH_CG_DESCENT"
+      else:
+        # dummy for avoiding "'else' branch of 'if' is empty" error on old Cabal
+        cpp-options: " "
+    - condition: flag(with-lbfgsb)
+      then:
+        dependencies:
+        - l-bfgs-b >=0.1.0.1 && <0.2
+        cpp-options: "-DWITH_LBFGSB"
       else:
         # dummy for avoiding "'else' branch of 'if' is empty" error on old Cabal
         cpp-options: " "

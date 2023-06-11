@@ -51,12 +51,14 @@ extra-deps:
 - vinyl-0.13.3@sha256:4031f1cb791185fccd2237bf412fa831363812b95987b433159520d1a511fcac,4046
 - git: https://github.com/wavewave/lbfgs-hs.git
   commit: 700f5a2295ff8a7f2ffb1ef3e9407e2468f683b7
+- l-bfgs-b-0.1.0.1
 
 # Override default flag values for local packages and extra-deps
 # flags: {}
 flags:
   numeric-optimization:
     with-cg-descent: true
+    with-lbfgsb: true
     build-examples: true
   numeric-optimization-ad:
     build-examples: true
