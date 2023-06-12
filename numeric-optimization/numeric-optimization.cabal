@@ -42,6 +42,11 @@ flag with-cg-descent
   manual: True
   default: False
 
+flag with-lbfgsb
+  description: Enable L-BFGS-B
+  manual: True
+  default: False
+
 library
   exposed-modules:
       Numeric.Optimization
@@ -63,6 +68,12 @@ library
     cpp-options: -DWITH_CG_DESCENT
     build-depends:
         nonlinear-optimization >=0.3.7 && <0.4
+  else
+    cpp-options:  
+  if flag(with-lbfgsb)
+    cpp-options: -DWITH_LBFGSB
+    build-depends:
+        l-bfgs-b >=0.1.0.1 && <0.2
   else
     cpp-options:  
 

@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedLists #-}
 import Test.Hspec
 
+import Control.Monad
 import Data.Vector.Storable (Vector)
 import Numeric.Optimization
 import IsClose
@@ -9,11 +10,18 @@ import IsClose
 main :: IO ()
 main = hspec $ do
   describe "minimize" $ do
-    context "when given rosenbrock function" $
+    context "when given rosenbrock function to LBFGS" $
       it "returns the global optimum" $ do
         result <- minimize LBFGS def (WithGrad rosenbrock rosenbrock') [-3,-4]
         resultSuccess result `shouldBe` True
         assertAllClose (def :: Tol Double) (resultSolution result) [1,1]
+
+    when (isSupportedMethod LBFGSB) $ do
+      context "when given rosenbrock function to LBFGSB" $
+        it "returns the global optimum" $ do
+          result <- minimize LBFGSB def (WithBounds (WithGrad rosenbrock rosenbrock') [(-4,2), (-5,2)]) [-3,-4]
+          resultSuccess result `shouldBe` True
+          assertAllClose (def :: Tol Double) (resultSolution result) [1,1]
 
 
 -- https://en.wikipedia.org/wiki/Rosenbrock_function
