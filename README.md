@@ -1,4 +1,4 @@
-# numeric-optimization-ad
+# nonlinear-optimization-ad
 
 [![build](https://github.com/msakai/nonlinear-optimization-ad/actions/workflows/build.yaml/badge.svg)](https://github.com/msakai/nonlinear-optimization-ad/actions/workflows/build.yaml)
 
