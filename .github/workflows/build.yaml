@@ -6,27 +6,41 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
-      matrix:
-        ghc: ['8.6.5', '8.8.4', '8.10.7', '9.0.2', '9.2.7', '9.4.5']
-        os: [ubuntu-latest]
+      matrix:        
         include:
           - ghc: '8.6.5'
+            os: ubuntu-latest
             stack_yaml: 'stack-ghc-8.6.yaml'
             flags: ''
           - ghc: '8.8.4'
+            os: ubuntu-latest
             stack_yaml: 'stack-ghc-8.8.yaml'
             flags: ''
           - ghc: '8.10.7'
+            os: ubuntu-latest
             stack_yaml: 'stack-ghc-8.10.yaml'
             coveralls: true
             flags: '--coverage'
           - ghc: '9.0.2'
+            os: ubuntu-latest
             stack_yaml: 'stack-ghc-9.0.yaml'
             flags: ''
           - ghc: '9.2.7'
+            os: ubuntu-latest
             stack_yaml: 'stack-ghc-9.2.yaml'
             flags: ''
           - ghc: '9.4.5'
+            os: ubuntu-latest
+            stack_yaml: 'stack-ghc-9.4.yaml'
+            flags: ''
+
+          - ghc: '9.4.5'
+            os: macos-latest
+            stack_yaml: 'stack-ghc-9.4.yaml'
+            flags: ''
+
+          - ghc: '9.4.5'
+            os: windows-latest
             stack_yaml: 'stack-ghc-9.4.yaml'
             flags: ''
     steps:
@@ -49,9 +63,19 @@ jobs:
         if: runner.os == 'Linux'
         run: sudo apt-get install liblbfgsb-dev
 
-      # - name: Install packages (macOS)
-      #   if: runner.os == 'macOS'
-      #   run: brew install msakai/tap/liblbfgsb
+      - name: Install packages (macOS)
+        if: runner.os == 'macOS'
+        run: brew install msakai/tap/liblbfgsb
+
+      - name: Install packages (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          MINGW_PACKAGE_PREFIX=mingw-w64-x86_64
+          curl -o${MINGW_PACKAGE_PREFIX}-liblbfgsb-3.0-1-any.pkg.tar.zst -L https://github.com/msakai/mingw-w64-liblbfgsb/releases/download/v3.0-1/${MINGW_PACKAGE_PREFIX}-liblbfgsb-3.0-1-any.pkg.tar.zst
+          stack --stack-yaml ${{ matrix.stack_yaml }} exec -- pacman -Sy
+          stack --stack-yaml ${{ matrix.stack_yaml }} exec -- pacman -S --needed --noconfirm ${MINGW_PACKAGE_PREFIX}-lapack
+          stack --stack-yaml ${{ matrix.stack_yaml }} exec -- pacman -U --noconfirm ${MINGW_PACKAGE_PREFIX}-liblbfgsb-3.0-1-any.pkg.tar.zst
 
       - name: Build
         run: |
