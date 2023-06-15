@@ -6,6 +6,8 @@
 
 Unified interface to various numerical optimization algorithms.
 
+The aim of the package is to provide a convenient interface like Python's [scipy.optimize](https://docs.scipy.org/doc/scipy/reference/optimize.html).
+
 Note that the package name is numeric-optimization and not numeri**cal**-optimization.
 The name `numeric-optimization` comes from the module name `Numeric.Optimization`.
 
