@@ -16,7 +16,7 @@
 -- Stability   :  provisional
 -- Portability :  non-portable
 --
--- This module aims to provides unifined interface to various numerical
+-- This module aims to provide unified interface to various numerical
 -- optimization, like [scipy.optimize](https://docs.scipy.org/doc/scipy/reference/optimize.html) in Python.
 --
 -- In this module, you need to explicitly provide the function to calculate the
