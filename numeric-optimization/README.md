@@ -47,6 +47,52 @@ sq x = x ** 2
 |Limited memory BFGS with bounds constraints (L-BFGS-B)|[L-BFGS-B](http://users.iems.northwestern.edu/~nocedal/lbfgsb.html)|[l-bfgs-b](https://hackage.haskell.org/package/l-bfgs-b)|Requires `with-lbfgsb` flag|
 |Newton's method|Pure Haskell implementation using [HMatrix](https://hackage.haskell.org/package/hmatrix)|-|
 
+## Installation
+
+### Installing Prerequisites
+
+#### BLAS and LAPACK
+
+You may need to install BLAS and LAPACK for `hmatrix`.
+
+Windows (MSYS2):
+```
+$ pacman -S mingw-w64-x86_64-lapack
+```
+
+or if you use MSYS2 installed by `stack`
+
+```
+$ stack exec -- pacman -S mingw-w64-x86_64-lapack
+```
+
+#### liblbfgsb
+
+If you want to use L-BFGS-B, you have to install the development package of `liblbfgsb`.
+
+Ubuntu Linux:
+```
+$ apt-get install liblbfgsb-dev
+```
+
+Homebrew (macOS and Linux): 
+```
+$ brew install msakai/tap/liblbfgsb
+```
+
+Windows (MSYS2):
+```
+$ wget https://github.com/msakai/mingw-w64-liblbfgsb/releases/download/v3.0-1/mingw-w64-x86_64-liblbfgsb-3.0-1-any.pkg.tar.zst
+$ pacman -U mingw-w64-x86_64-liblbfgsb-3.0-1-any.pkg.tar.zst
+```
+
+or if you use MSYS2 installed by `stack`
+
+```
+$ wget https://github.com/msakai/mingw-w64-liblbfgsb/releases/download/v3.0-1/mingw-w64-x86_64-liblbfgsb-3.0-1-any.pkg.tar.zst
+$ stack exec -- pacman -Sy
+$ stack exec -- pacman -U mingw-w64-x86_64-liblbfgsb-3.0-1-any.pkg.tar.zst
+```
 
 ## Related Packages
 
