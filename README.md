@@ -14,7 +14,7 @@ with automatic differentiation.
 
 ## numeric-optimization
 
-Packages for using various optimization algorithms not limited to *CG Descent* provided by  `nonlinear-optimization`.
+Packages for using various optimization algorithms (not limited to *CG Descent* provided by  `nonlinear-optimization`).
 
 * [numeric-optimization](numeric-optimization/) - Unified interface to various numerical optimization algorithms.
 * [numeric-optimization-ad](numeric-optimization-ad/) for using `numeric-optimization` with [ad](https://hackage.haskell.org/package/ad) package
