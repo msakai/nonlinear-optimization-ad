@@ -18,4 +18,4 @@ Packages for using various optimization algorithms not limited to *CG Descent* p
 
 * [numeric-optimization](numeric-optimization/) - Unified interface to various numerical optimization algorithms.
 * [numeric-optimization-ad](numeric-optimization-ad/) for using `numeric-optimization` with [ad](https://hackage.haskell.org/package/ad) package
-* [numeric-optimization-backprop](numeric-optimization-backprop/) for using `numeric-optimization` with [ad](https://hackage.haskell.org/package/backprop) package
+* [numeric-optimization-backprop](numeric-optimization-backprop/) for using `numeric-optimization` with [backprop](https://hackage.haskell.org/package/backprop) package
