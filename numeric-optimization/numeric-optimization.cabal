@@ -61,6 +61,7 @@ library
     , data-default-class >=0.1.2.0 && <0.2
     , hmatrix >=0.20.0.0
     , lbfgs ==0.1.*
+    , numeric-limits ==0.1.*
     , primitive >=0.6.4.0
     , vector >=0.12.0.2 && <0.14
   default-language: Haskell2010
