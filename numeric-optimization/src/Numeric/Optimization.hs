@@ -140,6 +140,8 @@ data Method
     -- * [4] <https://hackage.haskell.org/package/l-bfgs-b>
     --
     -- * [5] <http://users.iems.northwestern.edu/~nocedal/lbfgsb.html>
+    --
+    -- @since 0.1.1.0
   | Newton
     -- ^ Native implementation of Newton method
     --
@@ -197,18 +199,18 @@ data Params a
     --     \frac{f^k - f^{k+1}}{\mathrm{max}\{|f^k|,|f^{k+1}|,1\}} \le \mathrm{ftol}.
     -- \]
     --
-    -- @since 0.2.0.0
+    -- @since 0.1.1.0
   , paramsGTol :: Maybe Double
     -- ^ 'LBFGSB' stops iteration when \(\mathrm{max}\{|\mathrm{pg}_i| \mid i = 1, \ldots, n\} \le \mathrm{gtol}\)
     -- where \(\mathrm{pg}_i\) is the i-th component of the projected gradient.
     --
-    -- @since 0.2.0.0
+    -- @since 0.1.1.0
   , paramsMaxIterations :: Maybe Int
     -- ^ Maximum number of iterations.
     --
     -- Currently only 'LBFGSB' and 'CGDescent' uses this.
     --
-    -- @since 0.2.0.0
+    -- @since 0.1.1.0
   , paramsPast :: Maybe Int
     -- ^ Distance for delta-based convergence test in 'LBFGS'
     --
@@ -217,12 +219,12 @@ data Params a
     -- parameter is @Nothing@, the library does not perform the delta-based
     -- convergence test. The default value is @Nothing@.
     --
-    -- @since 0.2.0.0
+    -- @since 0.1.1.0
   , paramsMaxCorrections :: Maybe Int
     -- ^ The maximum number of variable metric corrections used in 'LBFGSB'
     -- to define the limited memory matrix.
     --
-    -- @since 0.2.0.0
+    -- @since 0.1.1.0
   }
 
 instance Default (Params a) where

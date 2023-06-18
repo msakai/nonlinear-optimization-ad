@@ -6,7 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to the
 [Haskell Package Versioning Policy](https://pvp.haskell.org/).
 
-## Unreleased
+## 0.1.1.0 - Unreleased
+
+* Support L-BFGS-B algorithm (when `with-lbfgsb` is enabled)
+* Add some algorithm specific parameters
+* Add instructions for installing dependent libraries
 
 ## 0.1.0.1 - 2023-06-03
 
