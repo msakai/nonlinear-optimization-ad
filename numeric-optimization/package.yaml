@@ -65,6 +65,7 @@ library:
   - constraints
   - hmatrix >=0.20.0.0
   - lbfgs >=0.1 && <0.2
+  - numeric-limits >=0.1 && <0.2
   - primitive >=0.6.4.0
   when:   
     - condition: flag(with-cg-descent)
