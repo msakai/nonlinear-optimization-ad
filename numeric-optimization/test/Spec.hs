@@ -10,11 +10,12 @@ import IsClose
 main :: IO ()
 main = hspec $ do
   describe "minimize" $ do
-    context "when given rosenbrock function to LBFGS" $
-      it "returns the global optimum" $ do
-        result <- minimize LBFGS def (WithGrad rosenbrock rosenbrock') [-3,-4]
-        resultSuccess result `shouldBe` True
-        assertAllClose (def :: Tol Double) (resultSolution result) [1,1]
+    when (isSupportedMethod LBFGS) $ do
+      context "when given rosenbrock function to LBFGS" $
+        it "returns the global optimum" $ do
+          result <- minimize LBFGS def (WithGrad rosenbrock rosenbrock') [-3,-4]
+          resultSuccess result `shouldBe` True
+          assertAllClose (def :: Tol Double) (resultSolution result) [1,1]
 
     when (isSupportedMethod LBFGSB) $ do
       context "when given rosenbrock function to LBFGSB" $

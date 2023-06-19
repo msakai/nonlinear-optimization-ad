@@ -80,7 +80,9 @@ import qualified Data.Vector.Generic as VG
 import qualified Data.Vector.Generic.Mutable as VGM
 import qualified Data.Vector.Storable.Mutable as VSM
 import Foreign.C
+#ifdef WITH_LBFGS
 import qualified Numeric.LBFGS.Vector as LBFGS
+#endif
 #ifdef WITH_CG_DESCENT
 import qualified Numeric.Optimization.Algorithms.HagerZhang05 as CG
 #endif
@@ -151,7 +153,11 @@ data Method
 
 -- | Whether a 'Method' is supported under the current environment.
 isSupportedMethod :: Method -> Bool
+#ifdef WITH_LBFGS
 isSupportedMethod LBFGS = True
+#else
+isSupportedMethod LBFGS = False
+#endif
 #ifdef WITH_CG_DESCENT
 isSupportedMethod CGDescent = True
 #else
@@ -455,10 +461,12 @@ minimize CGDescent =
     Just Dict -> minimize_CGDescent
     Nothing -> \_ _ _ -> throwIO GradUnavailable
 #endif
+#ifdef WITH_LBFGS
 minimize LBFGS =
   case optionalDict @(HasGrad prob) of
     Just Dict -> minimize_LBFGS
     Nothing -> \_ _ _ -> throwIO GradUnavailable
+#endif
 #ifdef WITH_LBFGSB
 minimize LBFGSB =
   case optionalDict @(HasGrad prob) of
@@ -552,6 +560,8 @@ minimize_CGDescent params prob x0 = do
 
 #endif
 
+
+#ifdef WITH_LBFGS
 
 minimize_LBFGS :: HasGrad prob => Params (Vector Double) -> prob -> Vector Double -> IO (Result (Vector Double))
 minimize_LBFGS _params prob _ | not (isNothing (bounds prob)) = throwIO (UnsupportedProblem "LBFGS does not support bounds")
@@ -656,6 +666,8 @@ minimize_LBFGS params prob x0 = do
         , hessEvals = 0
         }
     }
+
+#endif
 
 
 #ifdef WITH_LBFGSB
