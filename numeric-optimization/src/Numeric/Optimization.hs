@@ -409,7 +409,7 @@ data Constraint
 
 -- | Bounds for unconstrained problems, i.e. (-∞,+∞).
 boundsUnconstrained :: Int -> V.Vector (Double, Double)
-boundsUnconstrained n = V.replicate n (-1/0, 1/0)
+boundsUnconstrained n = V.replicate n (-infinity, infinity)
 
 -- | Whether all lower bounds are -∞ and all upper bounds are +∞.
 isUnconstainedBounds :: V.Vector (Double, Double) -> Bool
