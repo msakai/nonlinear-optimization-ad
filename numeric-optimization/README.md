@@ -57,7 +57,7 @@ sq x = x ** 2
 
 You may need to install BLAS and LAPACK for `hmatrix`.
 
-Windows (MSYS2):
+##### Windows (MSYS2):
 ```
 $ pacman -S mingw-w64-x86_64-lapack
 ```
@@ -68,21 +68,35 @@ or if you use MSYS2 installed by `stack`
 $ stack exec -- pacman -S mingw-w64-x86_64-lapack
 ```
 
+##### Debian and Ubuntu Linux:
+```
+$ apt-get install libblas-dev liblapack-dev
+```
+
+`libblas-dev` and `liblapack-dev` are reference implementations.
+You need to install optimized ones for better performance.
+(See [DebianScience/LinearAlgebraLibraries](https://wiki.debian.org/DebianScience/LinearAlgebraLibraries))
+
+
+##### macOS
+
+By default `hmatrix` uses BLAS and LAPACK provided by Accelerate Framework provided by macOS.
+
 #### liblbfgsb
 
 If you want to use L-BFGS-B, you have to install the development package of `liblbfgsb`.
 
-Ubuntu Linux:
+##### Ubuntu Linux:
 ```
 $ apt-get install liblbfgsb-dev
 ```
 
-Homebrew (macOS and Linux): 
+##### Homebrew (macOS and Linux): 
 ```
 $ brew install msakai/tap/liblbfgsb
 ```
 
-Windows (MSYS2):
+##### Windows (MSYS2):
 ```
 $ wget https://github.com/msakai/mingw-w64-liblbfgsb/releases/download/v3.0-1/mingw-w64-x86_64-liblbfgsb-3.0-1-any.pkg.tar.zst
 $ pacman -U mingw-w64-x86_64-liblbfgsb-3.0-1-any.pkg.tar.zst
