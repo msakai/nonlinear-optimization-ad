@@ -2,6 +2,7 @@
 {-# LANGUAGE RankNTypes #-}
 import Test.Hspec
 
+import Control.Monad
 import Numeric.Optimization.Backprop
 import Lens.Micro
 import IsClose
@@ -10,11 +11,12 @@ import IsClose
 main :: IO ()
 main = hspec $ do
   describe "minimize" $ do
-    context "when given rosenbrock function" $
-      it "returns the global optimum" $ do
-        result <- minimize LBFGS def rosenbrock Nothing [] (-3,-4)
-        resultSuccess result `shouldBe` True
-        assertAllClose (def :: Tol Double) (resultSolution result) (1,1)
+    when (isSupportedMethod LBFGS) $ do
+      context "when given rosenbrock function to LBFGS" $
+        it "returns the global optimum" $ do
+          result <- minimize LBFGS def rosenbrock Nothing [] (-3,-4)
+          resultSuccess result `shouldBe` True
+          assertAllClose (def :: Tol Double) (resultSolution result) (1,1)
 
 
 -- https://en.wikipedia.org/wiki/Rosenbrock_function

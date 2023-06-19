@@ -11,6 +11,8 @@ and this project adheres to the
 * Support L-BFGS-B algorithm (when `with-lbfgsb` is enabled)
 * Add some algorithm specific parameters
 * Add instructions for installing dependent libraries
+* Add `with-lbfgs` flag, which is `true` by default, but you can turn-off
+  the flag to build without L-BFGS.
 
 ## 0.1.0.1 - 2023-06-03
 

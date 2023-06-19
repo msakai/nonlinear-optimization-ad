@@ -33,6 +33,11 @@ flags:
     default: false
     manual: true
 
+  with-lbfgs:
+    description: Enable L-BFGS (since 0.1.1.0)
+    default: true
+    manual: true
+
   with-lbfgsb:
     description: Enable L-BFGS-B (since 0.1.1.0)
     default: false
@@ -64,7 +69,6 @@ library:
   dependencies:
   - constraints
   - hmatrix >=0.20.0.0
-  - lbfgs >=0.1 && <0.2
   - numeric-limits >=0.1 && <0.2
   - primitive >=0.6.4.0
   when:   
@@ -73,6 +77,14 @@ library:
         dependencies:
         - nonlinear-optimization >=0.3.7 && <0.4
         cpp-options: "-DWITH_CG_DESCENT"
+      else:
+        # dummy for avoiding "'else' branch of 'if' is empty" error on old Cabal
+        cpp-options: " "
+    - condition: flag(with-lbfgs)
+      then:
+        dependencies:
+        - lbfgs >=0.1 && <0.2
+        cpp-options: "-DWITH_LBFGS"
       else:
         # dummy for avoiding "'else' branch of 'if' is empty" error on old Cabal
         cpp-options: " "
