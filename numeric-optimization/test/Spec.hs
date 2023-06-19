@@ -3,6 +3,7 @@ import Test.Hspec
 
 import Control.Monad
 import Data.Vector.Storable (Vector)
+import Numeric.LinearAlgebra (Matrix, (><))
 import Numeric.Optimization
 import IsClose
 
@@ -10,6 +11,13 @@ import IsClose
 main :: IO ()
 main = hspec $ do
   describe "minimize" $ do
+    when (isSupportedMethod CGDescent) $ do
+      context "when given rosenbrock function to CGDescent" $
+        it "returns the global optimum" $ do
+          result <- minimize CGDescent def (WithGrad rosenbrock rosenbrock') [-3,-4]
+          resultSuccess result `shouldBe` True
+          assertAllClose (def :: Tol Double) (resultSolution result) [1,1]
+
     when (isSupportedMethod LBFGS) $ do
       context "when given rosenbrock function to LBFGS" $
         it "returns the global optimum" $ do
@@ -24,6 +32,13 @@ main = hspec $ do
           resultSuccess result `shouldBe` True
           assertAllClose (def :: Tol Double) (resultSolution result) [1,1]
 
+    when (isSupportedMethod Newton) $ do
+      context "when given rosenbrock function to Newton" $
+        it "returns the global optimum" $ do
+          result <- minimize Newton def (rosenbrock `WithGrad` rosenbrock' `WithHessian` rosenbrock'') [-3,-4]
+          resultSuccess result `shouldBe` True
+          assertAllClose (def :: Tol Double) (resultSolution result) [1,1]
+
 
 -- https://en.wikipedia.org/wiki/Rosenbrock_function
 rosenbrock :: Vector Double -> Double
@@ -33,6 +48,13 @@ rosenbrock' :: Vector Double -> Vector Double
 rosenbrock' [x,y] =
   [ 2 * (1 - x) * (-1) + 100 * 2 * (y - sq x) * (-2) * x
   , 100 * 2 * (y - sq x)
+  ]
+
+rosenbrock'' :: Vector Double -> Matrix Double
+rosenbrock'' [x,y] =
+  (2><2)
+  [ 2 + 100 * 2 * (-2) * ((y - sq x) + (x * (-2) * x)), 100 * 2 * (-2) * x
+  , 100 * 2 * (-2) * x, 100 * 2
   ]
 
 sq :: Floating a => a -> a

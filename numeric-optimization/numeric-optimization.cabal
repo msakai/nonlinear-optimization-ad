@@ -120,6 +120,7 @@ test-suite numeric-optimization-test
     , base >=4.12 && <5
     , containers >=0.6.0.1 && <0.7
     , data-default-class >=0.1.2.0 && <0.2
+    , hmatrix
     , hspec >=2.7.1 && <3.0
     , numeric-optimization
     , vector >=0.12.0.2 && <0.14

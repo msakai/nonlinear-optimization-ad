@@ -7,11 +7,19 @@ import IsClose
 
 main :: IO ()
 main = hspec $ do
-  describe "minimize" $ do
+  describe "minimizeReverse" $ do
     when (isSupportedMethod LBFGS) $ do
       context "when given rosenbrock function to LBFGS" $
         it "returns the global optimum" $ do
-          result <- minimize LBFGS def rosenbrock Nothing [] [-3,-4]
+          result <- minimizeReverse LBFGS def rosenbrock Nothing [] [-3,-4]
+          resultSuccess result `shouldBe` True
+          assertAllClose (def :: Tol Double) (resultSolution result) [1,1]
+
+  describe "minimizeSparse" $ do
+    when (isSupportedMethod Newton) $ do
+      context "when given rosenbrock function to Newton" $
+        it "returns the global optimum" $ do
+          result <- minimizeSparse Newton def rosenbrock Nothing [] [-3,-4]
           resultSuccess result `shouldBe` True
           assertAllClose (def :: Tol Double) (resultSolution result) [1,1]
 
