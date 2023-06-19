@@ -145,7 +145,7 @@ data Method
     --
     -- @since 0.1.1.0
   | Newton
-    -- ^ Native implementation of Newton method
+    -- ^ Naïve implementation of Newton method in Haskell
     --
     -- This method requires both gradient and hessian.
   deriving (Eq, Ord, Enum, Show, Bounded)
