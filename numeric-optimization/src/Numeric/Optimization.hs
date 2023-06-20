@@ -211,7 +211,7 @@ data Params a
     -- where \(\mathrm{pg}_i\) is the i-th component of the projected gradient.
     --
     -- @since 0.1.1.0
-  , paramsMaxIterations :: Maybe Int
+  , paramsMaxIters :: Maybe Int
     -- ^ Maximum number of iterations.
     --
     -- Currently only 'LBFGSB', 'CGDescent', and 'Newton' uses this.
@@ -240,7 +240,7 @@ instance Default (Params a) where
     , paramsTol = Nothing
     , paramsFTol = Nothing
     , paramsGTol = Nothing
-    , paramsMaxIterations = Nothing
+    , paramsMaxIters = Nothing
     , paramsPast = Nothing
     , paramsMaxCorrections = Nothing
     }
@@ -497,7 +497,7 @@ minimize_CGDescent params prob x0 = do
         CG.defaultParameters
         { CG.printFinal = False
         , CG.maxItersFac =
-            case paramsMaxIterations params of
+            case paramsMaxIters params of
               Nothing -> CG.maxItersFac CG.defaultParameters
               Just m -> fromIntegral m / fromIntegral (VG.length x0)
         }
@@ -716,7 +716,7 @@ minimize_LBFGSB params prob x0 = do
 
       -- | @'Just' steps@ means the minimization is aborted if it has not converged after
       -- @steps>0@ iterations. 'Nothing' signifies no limit.
-      steps = paramsMaxIterations params
+      steps = paramsMaxIters params
 
   result <- evaluate $ LBFGSB.minimize m factr pgtol steps bounds' x0 func' grad'
 
@@ -759,7 +759,7 @@ minimize_Newton params prob x0 = do
 
       loop !x !y !g !h !iter = do
         shouldStop <- msum <$> sequence
-          [ pure $ case paramsMaxIterations params of
+          [ pure $ case paramsMaxIters params of
               Just maxIter | maxIter <= iter -> Just "maximum number of iterations reached"
               _ -> Nothing
           , case paramsCallback params of

@@ -33,10 +33,10 @@ main = hspec $ do
           gradEvals stat `shouldSatisfy` (> 0)
           hessEvals stat `shouldBe` 0
 
-      context "when given paramsMaxIterations" $
+      context "when given paramsMaxIters" $
         it "stops iterations early" $ do
           let prob = WithGrad rosenbrock rosenbrock'
-          result <- minimize CGDescent def{ paramsMaxIterations = Just 2 } prob [1000, 1000]
+          result <- minimize CGDescent def{ paramsMaxIters = Just 2 } prob [1000, 1000]
           -- XXX: It seems that CG_DESCENT-C-3.0 report a number number of iterations that is 1 greater than the actual value
           totalIters (resultStatistics result) `shouldSatisfy` (\i -> 0 < i && i <= 2+1)
           resultSuccess result `shouldBe` False
@@ -112,10 +112,10 @@ main = hspec $ do
           gradEvals stat `shouldSatisfy` (>0)
           hessEvals stat `shouldBe` 0
 
-      context "when given paramsMaxIterations" $
+      context "when given paramsMaxIters" $
         it "stops iterations early" $ do
           let prob = WithGrad rosenbrock rosenbrock'
-          result <- minimize LBFGSB def{ paramsMaxIterations = Just 2 } prob [1000, 1000]
+          result <- minimize LBFGSB def{ paramsMaxIters = Just 2 } prob [1000, 1000]
           totalIters (resultStatistics result) `shouldSatisfy` (\i -> 0 < i && i <= 2)
           resultSuccess result `shouldBe` False
 
@@ -145,10 +145,10 @@ main = hspec $ do
           gradEvals stat `shouldSatisfy` (>0)
           hessEvals stat `shouldSatisfy` (>0)
 
-      context "when given paramsMaxIterations" $
+      context "when given paramsMaxIters" $
         it "stops iterations early" $ do
           let prob = rosenbrock `WithGrad` rosenbrock' `WithHessian` rosenbrock''
-          result <- minimize Newton def{ paramsMaxIterations = Just 2 } prob [1000, 1000]
+          result <- minimize Newton def{ paramsMaxIters = Just 2 } prob [1000, 1000]
           totalIters (resultStatistics result) `shouldSatisfy` (\i -> 0 < i && i <= 2)
           resultSuccess result `shouldBe` False
           assertAllClose (def :: Tol Double) (resultValue result) (func prob (resultSolution result))
