@@ -757,10 +757,10 @@ minimize_Newton _params prob _ | not (null (constraints prob)) = throwIO (Unsupp
 minimize_Newton params prob x0 = do
   let tol = fromMaybe 1e-6 (paramsTol params)
 
-      loop !x !y !g !h !n = do
-        shoudStop <- msum <$> sequence
+      loop !x !y !g !h !iter = do
+        shouldStop <- msum <$> sequence
           [ pure $ case paramsMaxIterations params of
-              Just maxIter | maxIter > n -> Just "maximum number of iterations reached"
+              Just maxIter | maxIter <= iter -> Just "maximum number of iterations reached"
               _ -> Nothing
           , case paramsCallback params of
               Nothing -> return Nothing
@@ -768,7 +768,7 @@ minimize_Newton params prob x0 = do
                 flag <- callback x
                 return $ if flag then Just "The minimization process has been canceled." else Nothing
           ]
-        case shoudStop of
+        case shouldStop of
           Just reason ->
             return $
               Result
@@ -781,10 +781,10 @@ minimize_Newton params prob x0 = do
               , resultHessianInv = Nothing
               , resultStatistics =
                   Statistics
-                  { totalIters = n
-                  , funcEvals = n
-                  , gradEvals = n
-                  , hessEvals = n
+                  { totalIters = iter
+                  , funcEvals = iter + 1
+                  , gradEvals = iter + 1
+                  , hessEvals = iter + 1
                   }
               }
           Nothing -> do
@@ -793,7 +793,7 @@ minimize_Newton params prob x0 = do
             if LA.norm_Inf (VG.zipWith (-) x' x) > tol then do
               let (y', g') = grad' prob x'
                   h' = hessian prob x'
-              loop x' y' g' h' (n+1)
+              loop x' y' g' h' (iter + 1)
             else do
               return $
                 Result
@@ -806,16 +806,16 @@ minimize_Newton params prob x0 = do
                 , resultHessianInv = Nothing
                 , resultStatistics =
                     Statistics
-                    { totalIters = n
-                    , funcEvals = n
-                    , gradEvals = n
-                    , hessEvals = n
+                    { totalIters = iter
+                    , funcEvals = iter + 1
+                    , gradEvals = iter + 1
+                    , hessEvals = iter + 1
                     }
                 }
 
   let (y0, g0) = grad' prob x0
       h0 = hessian prob x0
-  loop x0 y0 g0 h0 1
+  loop x0 y0 g0 h0 0
 
 -- ------------------------------------------------------------------------
 
