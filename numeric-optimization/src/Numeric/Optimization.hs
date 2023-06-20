@@ -718,7 +718,7 @@ minimize_LBFGSB params prob x0 = do
       -- @steps>0@ iterations. 'Nothing' signifies no limit.
       steps = paramsMaxIterations params
 
-      result = LBFGSB.minimize m factr pgtol steps bounds' x0 func' grad'
+  result <- evaluate $ LBFGSB.minimize m factr pgtol steps bounds' x0 func' grad'
 
   let x = LBFGSB.solution result
       (success, msg) =
