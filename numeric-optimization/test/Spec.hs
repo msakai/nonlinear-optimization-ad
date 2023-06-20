@@ -92,7 +92,6 @@ main = hspec $ do
         it "stops iterations early" $ do
           let prob = rosenbrock `WithGrad` rosenbrock' `WithHessian` rosenbrock''
           result <- minimize Newton def{ paramsMaxIterations = Just 2 } prob [1000, 1000]
-          traceShowM result
           totalIters (resultStatistics result) `shouldSatisfy` (<=2)
           resultSuccess result `shouldBe` False
 
