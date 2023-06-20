@@ -31,7 +31,7 @@ main = hspec $ do
           totalIters stat `shouldSatisfy` (> 0)
           funcEvals stat `shouldSatisfy` (> 0)
           gradEvals stat `shouldSatisfy` (> 0)
-          hessEvals stat `shouldBe` 0
+          hessianEvals stat `shouldBe` 0
 
       context "when given paramsMaxIters" $
         it "stops iterations early" $ do
@@ -68,7 +68,7 @@ main = hspec $ do
           totalIters stat `shouldSatisfy` (>0)
           funcEvals stat `shouldSatisfy` (>0)
           gradEvals stat `shouldSatisfy` (>0)
-          hessEvals stat `shouldBe` 0
+          hessianEvals stat `shouldBe` 0
 
       context "when given callback" $
         it "stops iterations early" $ do
@@ -110,7 +110,7 @@ main = hspec $ do
           totalIters stat `shouldSatisfy` (>0)
           funcEvals stat `shouldSatisfy` (>0)
           gradEvals stat `shouldSatisfy` (>0)
-          hessEvals stat `shouldBe` 0
+          hessianEvals stat `shouldBe` 0
 
       context "when given paramsMaxIters" $
         it "stops iterations early" $ do
@@ -143,7 +143,7 @@ main = hspec $ do
           totalIters stat `shouldSatisfy` (>0)
           funcEvals stat `shouldSatisfy` (>0)
           gradEvals stat `shouldSatisfy` (>0)
-          hessEvals stat `shouldSatisfy` (>0)
+          hessianEvals stat `shouldSatisfy` (>0)
 
       context "when given paramsMaxIters" $
         it "stops iterations early" $ do
@@ -174,7 +174,7 @@ main = hspec $ do
           totalIters stat `shouldBe` 2
           funcEvals stat `shouldSatisfy` (> 0)
           gradEvals stat `shouldSatisfy` (> 0)
-          hessEvals stat `shouldSatisfy` (> 0)
+          hessianEvals stat `shouldSatisfy` (> 0)
 
       context "when given a function without gradient" $ do
         it "should throw GradUnavailable" $ do

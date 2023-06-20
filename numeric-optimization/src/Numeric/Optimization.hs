@@ -291,10 +291,14 @@ data Statistics
     -- ^ Total number of function evaluations.
   , gradEvals :: Int
     -- ^ Total number of gradient evaluations.
+  , hessianEvals :: Int
+    -- ^ Total number of hessian evaluations.
   , hessEvals :: Int
     -- ^ Total number of hessian evaluations.
   }
   deriving (Show)
+
+{-# DEPRECATED hessEvals "Use hessianEvals instead" #-}
 
 
 -- | The bad things that can happen when you use the library.
@@ -557,6 +561,7 @@ minimize_CGDescent params prob x0 = do
         , funcEvals = fromIntegral $ CG.funcEvals stat
         , gradEvals = fromIntegral $ CG.gradEvals stat
         , hessEvals = 0
+        , hessianEvals = 0
         }
     }
 
@@ -667,6 +672,7 @@ minimize_LBFGS params prob x0 = do
         , funcEvals = nEvals + 1  -- +1 is for computing 'resultValue'
         , gradEvals = nEvals
         , hessEvals = 0
+        , hessianEvals = 0
         }
     }
 
@@ -745,6 +751,7 @@ minimize_LBFGSB params prob x0 = do
         , funcEvals = funcEvals
         , gradEvals = gradEvals
         , hessEvals = 0
+        , hessianEvals = 0
         }
     }
 
@@ -785,6 +792,7 @@ minimize_Newton params prob x0 = do
                   , funcEvals = iter + 1
                   , gradEvals = iter + 1
                   , hessEvals = iter + 1
+                  , hessianEvals = iter + 1
                   }
               }
           Nothing -> do
@@ -810,6 +818,7 @@ minimize_Newton params prob x0 = do
                     , funcEvals = iter + 1
                     , gradEvals = iter + 1
                     , hessEvals = iter + 1
+                    , hessianEvals = iter + 1
                     }
                 }
 
