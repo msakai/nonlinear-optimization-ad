@@ -1,4 +1,5 @@
 {-# OPTIONS_GHC -Wall #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 module IsClose
@@ -30,6 +31,7 @@ import qualified Data.Vector.Generic as VG
 import qualified Data.Vector.Storable as VS
 import qualified Data.Vector.Unboxed as VU
 import GHC.Stack (HasCallStack)
+import Numeric.LinearAlgebra as LA
 import Test.HUnit
 import Text.Printf
 
@@ -121,6 +123,11 @@ instance (AllClose r v, VS.Storable v) => AllClose r (VS.Vector v) where
 instance (AllClose r v, VU.Unbox v) => AllClose r (VU.Vector v) where
   allCloseRaw tol xs ys
     | VG.length xs == VG.length ys = sconcat (allCloseRawUnit :| [allCloseRaw tol a b | (a,b) <- zip (VG.toList xs) (VG.toList ys)])
+    | otherwise = Ap Nothing
+
+instance (AllClose r v, Num v, LA.Container Vector v) => AllClose r (LA.Matrix v) where
+  allCloseRaw tol xs ys
+    | LA.size xs == LA.size ys = allCloseRaw tol (flatten xs) (flatten ys)
     | otherwise = Ap Nothing
 
 -- ------------------------------------------------------------------------

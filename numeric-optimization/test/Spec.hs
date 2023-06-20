@@ -2,7 +2,9 @@
 {-# LANGUAGE LambdaCase #-}
 import Test.Hspec
 
+import Control.Exception
 import Control.Monad
+import Data.IORef
 import Data.Vector.Storable (Vector)
 import Numeric.LinearAlgebra (Matrix, (><))
 import Numeric.Optimization
@@ -20,13 +22,23 @@ main = hspec $ do
           resultSuccess result `shouldBe` True
           assertAllClose (def :: Tol Double) (resultSolution result) [1,1]
           assertAllClose (def :: Tol Double) (resultValue result) (func prob (resultSolution result))
+          case resultGrad result of
+            Nothing -> return ()
+            Just g -> assertAllClose (def :: Tol Double) g (grad prob (resultSolution result))
+          resultHessian result `shouldBe` Nothing
+          resultHessianInv result `shouldBe` Nothing
+          let stat = resultStatistics result
+          totalIters stat `shouldSatisfy` (> 0)
+          funcEvals stat `shouldSatisfy` (> 0)
+          gradEvals stat `shouldSatisfy` (> 0)
+          hessEvals stat `shouldBe` 0
 
       context "when given paramsMaxIterations" $
         it "stops iterations early" $ do
           let prob = WithGrad rosenbrock rosenbrock'
           result <- minimize CGDescent def{ paramsMaxIterations = Just 2 } prob [1000, 1000]
           -- XXX: It seems that CG_DESCENT-C-3.0 report a number number of iterations that is 1 greater than the actual value
-          totalIters (resultStatistics result) `shouldSatisfy` (<=2+1)
+          totalIters (resultStatistics result) `shouldSatisfy` (\i -> 0 < i && i <= 2+1)
           resultSuccess result `shouldBe` False
 
       context "when given a function without gradient" $ do
@@ -47,6 +59,29 @@ main = hspec $ do
           resultSuccess result `shouldBe` True
           assertAllClose (def :: Tol Double) (resultSolution result) [1,1]
           assertAllClose (def :: Tol Double) (resultValue result) (func prob (resultSolution result))
+          case resultGrad result of
+            Nothing -> return ()
+            Just g -> assertAllClose (def :: Tol Double) g (grad prob (resultSolution result))
+          resultHessian result `shouldBe` Nothing
+          resultHessianInv result `shouldBe` Nothing
+          let stat = resultStatistics result
+          totalIters stat `shouldSatisfy` (>0)
+          funcEvals stat `shouldSatisfy` (>0)
+          gradEvals stat `shouldSatisfy` (>0)
+          hessEvals stat `shouldBe` 0
+
+      context "when given callback" $
+        it "stops iterations early" $ do
+          let prob = rosenbrock `WithGrad` rosenbrock'
+          counter <- newIORef (0 :: Int)
+          let callback x = do
+                evaluate x
+                cnt <- readIORef counter
+                writeIORef counter (cnt + 1)
+                return (cnt >= 2)
+          result <- minimize LBFGS def{ paramsCallback = Just callback } prob [1000, 1000]
+          totalIters (resultStatistics result) `shouldBe` 3  -- ???
+          resultSuccess result `shouldBe` False
 
       context "when given a function without gradient" $ do
         it "should throw GradUnavailable" $ do
@@ -66,12 +101,22 @@ main = hspec $ do
           resultSuccess result `shouldBe` True
           assertAllClose (def :: Tol Double) (resultSolution result) [1,1]
           assertAllClose (def :: Tol Double) (resultValue result) (func prob (resultSolution result))
+          case resultGrad result of
+            Nothing -> return ()
+            Just g -> assertAllClose (def :: Tol Double) g (grad prob (resultSolution result))
+          evaluate $ resultHessian result
+          evaluate $ resultHessianInv result
+          let stat = resultStatistics result
+          totalIters stat `shouldSatisfy` (>0)
+          funcEvals stat `shouldSatisfy` (>0)
+          gradEvals stat `shouldSatisfy` (>0)
+          hessEvals stat `shouldBe` 0
 
       context "when given paramsMaxIterations" $
         it "stops iterations early" $ do
           let prob = WithGrad rosenbrock rosenbrock'
           result <- minimize LBFGSB def{ paramsMaxIterations = Just 2 } prob [1000, 1000]
-          totalIters (resultStatistics result) `shouldSatisfy` (<=2)
+          totalIters (resultStatistics result) `shouldSatisfy` (\i -> 0 < i && i <= 2)
           resultSuccess result `shouldBe` False
 
       context "when given a function without gradient" $ do
@@ -85,15 +130,51 @@ main = hspec $ do
           let prob = rosenbrock `WithGrad` rosenbrock' `WithHessian` rosenbrock''
           result <- minimize Newton def prob [-3,-4]
           resultSuccess result `shouldBe` True
+          totalIters (resultStatistics result) `shouldSatisfy` (> 0)
           assertAllClose (def :: Tol Double) (resultSolution result) [1,1]
           assertAllClose (def :: Tol Double) (resultValue result) (func prob (resultSolution result))
+          case resultGrad result of
+            Nothing -> return ()
+            Just g -> assertAllClose (def :: Tol Double) g (grad prob (resultSolution result))
+          case resultHessian result of
+            Nothing -> return ()
+            Just h -> assertAllClose (def :: Tol Double) h (hessian prob (resultSolution result))
+          let stat = resultStatistics result
+          totalIters stat `shouldSatisfy` (>0)
+          funcEvals stat `shouldSatisfy` (>0)
+          gradEvals stat `shouldSatisfy` (>0)
+          hessEvals stat `shouldSatisfy` (>0)
 
       context "when given paramsMaxIterations" $
         it "stops iterations early" $ do
           let prob = rosenbrock `WithGrad` rosenbrock' `WithHessian` rosenbrock''
           result <- minimize Newton def{ paramsMaxIterations = Just 2 } prob [1000, 1000]
-          totalIters (resultStatistics result) `shouldSatisfy` (<=2)
+          totalIters (resultStatistics result) `shouldSatisfy` (\i -> 0 < i && i <= 2)
           resultSuccess result `shouldBe` False
+          assertAllClose (def :: Tol Double) (resultValue result) (func prob (resultSolution result))
+          case resultGrad result of
+            Nothing -> return ()
+            Just g -> assertAllClose (def :: Tol Double) g (grad prob (resultSolution result))
+          case resultHessian result of
+            Nothing -> return ()
+            Just h -> assertAllClose (def :: Tol Double) h (hessian prob (resultSolution result))
+
+      context "when given callback" $
+        it "stops iterations early" $ do
+          let prob = rosenbrock `WithGrad` rosenbrock' `WithHessian` rosenbrock''
+          counter <- newIORef (0 :: Int)
+          let callback x = do
+                evaluate x
+                cnt <- readIORef counter
+                writeIORef counter (cnt + 1)
+                return (cnt >= 2)
+          result <- minimize Newton def{ paramsCallback = Just callback } prob [1000, 1000]
+          resultSuccess result `shouldBe` False
+          let stat = resultStatistics result
+          totalIters stat `shouldBe` 2
+          funcEvals stat `shouldSatisfy` (> 0)
+          gradEvals stat `shouldSatisfy` (> 0)
+          hessEvals stat `shouldSatisfy` (> 0)
 
       context "when given a function without gradient" $ do
         it "should throw GradUnavailable" $ do
