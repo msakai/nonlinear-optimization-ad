@@ -272,6 +272,7 @@ data Result a
   , resultStatistics :: Statistics
     -- ^ Statistics of optimizaion process
   }
+  deriving (Show)
 
 instance Functor Result where
   fmap f result =
@@ -293,6 +294,7 @@ data Statistics
   , hessEvals :: Int
     -- ^ Total number of hessian evaluations.
   }
+  deriving (Show)
 
 
 -- | The bad things that can happen when you use the library.
@@ -301,7 +303,7 @@ data OptimizationException
   | UnsupportedMethod Method
   | GradUnavailable
   | HessianUnavailable
-  deriving (Show)
+  deriving (Show, Eq)
 
 instance Exception OptimizationException
 

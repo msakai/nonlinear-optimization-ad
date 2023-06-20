@@ -13,6 +13,8 @@ and this project adheres to the
 * Add instructions for installing dependent libraries
 * Add `with-lbfgs` flag, which is `true` by default, but you can turn-off
   the flag to build without L-BFGS.
+* Add some instances of standard type classes: `Eq OptimizationException`,
+  `Show Result`, and `Show Statistics`.
 
 ## 0.1.0.1 - 2023-06-03
 
