@@ -214,7 +214,7 @@ data Params a
   , paramsMaxIterations :: Maybe Int
     -- ^ Maximum number of iterations.
     --
-    -- Currently only 'LBFGSB' and 'CGDescent' uses this.
+    -- Currently only 'LBFGSB', 'CGDescent', and 'Newton' uses this.
     --
     -- @since 0.1.1.0
   , paramsPast :: Maybe Int
