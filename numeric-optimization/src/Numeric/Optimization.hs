@@ -649,6 +649,7 @@ minimize_LBFGS params prob x0 = do
           LBFGS.InvalidParameters      -> (False, "A logic error (negative line-search step) occurred.")
           LBFGS.IncreaseGradient       -> (False, "The current search direction increases the objective function value.")
 
+  iters <- readIORef iterRef
   nEvals <- readIORef evalCounter
 
   return $
@@ -662,9 +663,9 @@ minimize_LBFGS params prob x0 = do
     , resultHessianInv = Nothing
     , resultStatistics =
         Statistics
-        { totalIters = undefined
-        , funcEvals = nEvals + 1
-        , gradEvals = nEvals + 1
+        { totalIters = iters
+        , funcEvals = nEvals + 1  -- +1 is for computing 'resultValue'
+        , gradEvals = nEvals
         , hessEvals = 0
         }
     }
@@ -726,11 +727,14 @@ minimize_LBFGSB params prob x0 = do
            LBFGSB.StepCount -> (False, "The number of steps exceeded the user's request.")
            LBFGSB.Other msg -> (False, msg)
 
+  funcEvals <- readIORef funcEvalRef
+  gradEvals <- readIORef gradEvalRef
+
   return $
     Result
     { resultSuccess = success
     , resultMessage = msg
-    , resultSolution = LBFGSB.solution result
+    , resultSolution = x
     , resultValue = func prob x
     , resultGrad = Nothing
     , resultHessian = Nothing
@@ -738,8 +742,8 @@ minimize_LBFGSB params prob x0 = do
     , resultStatistics =
         Statistics
         { totalIters = length (LBFGSB.backtrace result)
-        , funcEvals = -1
-        , gradEvals = -1
+        , funcEvals = funcEvals
+        , gradEvals = gradEvals
         , hessEvals = 0
         }
     }
