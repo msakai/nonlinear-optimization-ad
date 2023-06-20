@@ -615,7 +615,7 @@ minimize_LBFGS params prob x0 = do
       (success, msg) =
         case result of
           LBFGS.Success                -> (True,  "Success")
-          LBFGS.Stop                   -> (True,  "Stop")
+          LBFGS.Stop                   -> (False, "Stop")
           LBFGS.AlreadyMinimized       -> (True,  "The initial variables already minimize the objective function.")
           LBFGS.UnknownError           -> (False, "Unknown error.")
           LBFGS.LogicError             -> (False, "Logic error.")
