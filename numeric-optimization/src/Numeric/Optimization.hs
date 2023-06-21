@@ -82,6 +82,7 @@ import qualified Data.Vector.Storable.Mutable as VSM
 import Foreign.C
 #ifdef WITH_LBFGS
 import qualified Numeric.LBFGS.Vector as LBFGS
+import qualified Numeric.LBFGS.Raw as LBFGS (unCLBFGSResult, lbfgserrCanceled)
 #endif
 #ifdef WITH_CG_DESCENT
 import qualified Numeric.Optimization.Algorithms.HagerZhang05 as CG
@@ -613,14 +614,14 @@ minimize_LBFGS params prob x0 = do
               x <- VG.freeze (coerce xvec :: VSM.IOVector Double)
 #endif
               callback x
-        return $ if shouldStop then 1 else 0
+        return $ if shouldStop then fromIntegral (LBFGS.unCLBFGSResult LBFGS.lbfgserrCanceled) else 0
 
   (result, x_) <- LBFGS.lbfgs lbfgsParams evalFun progressFun instanceData (VG.toList x0)
   let x = VG.fromList x_
       (success, msg) =
         case result of
           LBFGS.Success                -> (True,  "Success")
-          LBFGS.Stop                   -> (False, "Stop")
+          LBFGS.Stop                   -> (True,  "Stop")
           LBFGS.AlreadyMinimized       -> (True,  "The initial variables already minimize the objective function.")
           LBFGS.UnknownError           -> (False, "Unknown error.")
           LBFGS.LogicError             -> (False, "Logic error.")
