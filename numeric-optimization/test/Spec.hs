@@ -70,6 +70,14 @@ main = hspec $ do
           gradEvals stat `shouldSatisfy` (>0)
           hessianEvals stat `shouldBe` 0
 
+      context "when given rosenbrock function with past" $
+        it "returns the global optimum" $ do
+          let prob = WithGrad rosenbrock rosenbrock'
+          result <- minimize LBFGS def{ paramsPast = Just 1 } prob [-3,-4]
+          resultSuccess result `shouldBe` True
+          assertAllClose (def :: Tol Double) (resultSolution result) [1,1]
+          assertAllClose (def :: Tol Double) (resultValue result) (func prob (resultSolution result))
+
       context "when given callback" $
         it "stops iterations early" $ do
           let prob = rosenbrock `WithGrad` rosenbrock'
@@ -96,7 +104,7 @@ main = hspec $ do
     when (isSupportedMethod LBFGSB) $ do
       context "when given rosenbrock function" $
         it "returns the global optimum" $ do
-          let prob = rosenbrock `WithGrad` rosenbrock' `WithBounds` [(-4,2), (-5,2)]
+          let prob = rosenbrock `WithGrad` rosenbrock'
           result <- minimize LBFGSB def prob [-3,-4]
           resultSuccess result `shouldBe` True
           assertAllClose (def :: Tol Double) (resultSolution result) [1,1]
@@ -111,6 +119,28 @@ main = hspec $ do
           funcEvals stat `shouldSatisfy` (>0)
           gradEvals stat `shouldSatisfy` (>0)
           hessianEvals stat `shouldBe` 0
+
+      context "when given rosenbrock function with ftol (low accuracy)" $
+        it "returns a solution not close enough to global optimum" $ do
+          let prob = rosenbrock `WithGrad` rosenbrock'
+              eps = 2.220446049250313e-16
+          result <- minimize LBFGSB def{ paramsFTol = Just (1e12 * eps) } prob [-3,-4]
+          resultSuccess result `shouldBe` True
+          allClose (def :: Tol Double) (resultSolution result) [1,1] `shouldBe` False
+
+      context "when given rosenbrock function with bounds" $
+        it "returns the global optimum" $ do
+          let prob = rosenbrock `WithGrad` rosenbrock' `WithBounds` [(-4,2), (-5,2)]
+          result <- minimize LBFGSB def prob [-3,-4]
+          resultSuccess result `shouldBe` True
+          assertAllClose (def :: Tol Double) (resultSolution result) [1,1]
+
+      context "when given rosenbrock function with bounds (-infinity, +infinity)" $
+        it "returns the global optimum" $ do
+          let prob = rosenbrock `WithGrad` rosenbrock' `WithBounds` boundsUnconstrained 2
+          result <- minimize LBFGSB def prob [-3,-4]
+          resultSuccess result `shouldBe` True
+          assertAllClose (def :: Tol Double) (resultSolution result) [1,1]
 
       context "when given paramsMaxIters" $
         it "stops iterations early" $ do
