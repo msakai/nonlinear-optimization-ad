@@ -581,7 +581,7 @@ minimize_LBFGS params prob x0 = do
   let lbfgsParams =
         LBFGS.LBFGSParameters
         { LBFGS.lbfgsPast = paramsPast params
-        , LBFGS.lbfgsDelta = fromMaybe 0 $ paramsTol params <|> paramsTol params
+        , LBFGS.lbfgsDelta = fromMaybe 1e-5 $ paramsFTol params <|> paramsTol params
         , LBFGS.lbfgsLineSearch = LBFGS.DefaultLineSearch
         , LBFGS.lbfgsL1NormCoefficient = Nothing
         }
