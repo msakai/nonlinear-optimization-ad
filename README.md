@@ -4,7 +4,7 @@
 
 This repository contains several Haskell packages for numerical optimizations.
 
-## nonlinear-optimization
+## `nonlinear-optimization` family
 
 Packages for using [nonlinear-optimization](https://hackage.haskell.org/package/nonlinear-optimization)
 with automatic differentiation.
@@ -12,7 +12,7 @@ with automatic differentiation.
 * [nonlinear-optimization-ad](nonlinear-optimization-ad/) for using with [ad](https://hackage.haskell.org/package/ad) package
 * [nonlinear-optimization-backprop](nonlinear-optimization-backprop/) for using with [ad](https://hackage.haskell.org/package/backprop) package
 
-## numeric-optimization
+## `numeric-optimization` family
 
 Packages for using various optimization algorithms (not limited to *CG Descent* provided by  `nonlinear-optimization`).
 

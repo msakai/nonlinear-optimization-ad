@@ -16,6 +16,7 @@ and this project adheres to the
 * Add some instances of standard type classes: `Eq OptimizationException`,
   `Show Result`, and `Show Statistics`.
 * Return correct statistics for L-BFGS and L-BFGS-B.
+* Fix many bugs
 
 ## 0.1.0.1 - 2023-06-03
 

@@ -189,18 +189,19 @@ data Params a
     --
     -- If specified, this value is used as defaults for 'paramsFTol' and 'paramsGTol'.
   , paramsFTol :: Maybe Double
-    -- ^ 'LBFGS' stops iteration when delta-based convergence test (see 'paramsPast') and
-    -- the following condition is met:
+    -- ^ 'LBFGS' stops iteration when delta-based convergence test
+    -- (see 'paramsPast') is enabled and the following condition is
+    -- met:
     --
     -- \[
-    --     (f' - f) / f < \mathrm{ftol},
+    --     \left|\frac{f' - f}{f}\right| < \mathrm{ftol},
     -- \]
     --
     -- where @f'@ is the objective value of @past@ ('paramsPast') iterations ago,
     -- and @f@ is the objective value of the current iteration.
     -- The default value is @1e-5@.
     --
-    -- 'LBFGSB' stops iteration when the condition is met:
+    -- 'LBFGSB' stops iteration when the following condition is met:
     --
     -- \[
     --     \frac{f^k - f^{k+1}}{\mathrm{max}\{|f^k|,|f^{k+1}|,1\}} \le \mathrm{ftol}.
@@ -322,8 +323,8 @@ instance Exception OptimizationException
 --
 -- In the simplest case, @'VS.Vector' Double -> Double@ is a instance
 -- of 'IsProblem' class. It is enough if your problem does not have
--- constraints and the selected algorithm does not further information
--- (e.g. gradients and hessians),
+-- constraints and the selected algorithm does not require further
+-- information (e.g. gradients and hessians),
 --
 -- You can equip a problem with other information using wrapper types:
 --
