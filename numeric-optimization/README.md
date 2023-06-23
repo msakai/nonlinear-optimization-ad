@@ -45,9 +45,9 @@ sq x = x ** 2
 |Algorithm|Solver implemention|Haskell binding| |
 |---------|-------------------|---------------|-|
 |CG\_DESCENT|[CG_DESCENT-C](https://www.math.lsu.edu/~hozhang/SoftArchive/CG_DESCENT-C-3.0.tar.gz)|[nonlinear-optimization](https://hackage.haskell.org/package/nonlinear-optimization)|Requires `with-cg-descent` flag|
-|Limited memory BFGS (L-BFGS)|[liblbfgs](https://github.com/chokkan/liblbfgs)|[lbfgs](https://hackage.haskell.org/package/lbfgs)|
+|Limited memory BFGS (L-BFGS)|[liblbfgs](https://github.com/chokkan/liblbfgs)|[lbfgs](https://hackage.haskell.org/package/lbfgs)|Requires `with-lbfgs` flag|
 |Limited memory BFGS with bounds constraints (L-BFGS-B)|[L-BFGS-B](http://users.iems.northwestern.edu/~nocedal/lbfgsb.html)|[l-bfgs-b](https://hackage.haskell.org/package/l-bfgs-b)|Requires `with-lbfgsb` flag|
-|Newton's method|Pure Haskell implementation using [HMatrix](https://hackage.haskell.org/package/hmatrix)|-|
+|Newton's method|Pure Haskell implementation using [HMatrix](https://hackage.haskell.org/package/hmatrix)|-|-|
 
 ## Installation
 
