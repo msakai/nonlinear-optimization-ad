@@ -617,7 +617,7 @@ minimize_LBFGS params prob x0 = do
               x <- VG.freeze (coerce xvec :: VSM.IOVector Double)
 #endif
               callback x
-        return $ if shouldStop then fromIntegral (LBFGS.unCLBFGSResult LBFGS.lbfgserrCanceled) else 0
+        return $ if shouldStop then LBFGS.unCLBFGSResult LBFGS.lbfgserrCanceled else 0
 
   (result, x_) <- LBFGS.lbfgs lbfgsParams evalFun progressFun instanceData (VG.toList x0)
   let x = VG.fromList x_
