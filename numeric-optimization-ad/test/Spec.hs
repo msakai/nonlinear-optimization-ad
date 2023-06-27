@@ -1,6 +1,7 @@
 import Test.Hspec
 
 import Control.Monad
+import Numeric.Optimization
 import Numeric.Optimization.AD
 import IsClose
 
@@ -11,7 +12,7 @@ main = hspec $ do
     when (isSupportedMethod LBFGS) $ do
       context "when given rosenbrock function to LBFGS" $
         it "returns the global optimum" $ do
-          result <- minimizeReverse LBFGS def rosenbrock Nothing [] [-3,-4]
+          result <- minimize LBFGS def (UsingReverse rosenbrock) [-3,-4]
           resultSuccess result `shouldBe` True
           assertAllClose (def :: Tol Double) (resultSolution result) [1,1]
 
@@ -19,7 +20,7 @@ main = hspec $ do
     when (isSupportedMethod Newton) $ do
       context "when given rosenbrock function to Newton" $
         it "returns the global optimum" $ do
-          result <- minimizeSparse Newton def rosenbrock Nothing [] [-3,-4]
+          result <- minimize Newton def (UsingSparse rosenbrock) [-3,-4]
           resultSuccess result `shouldBe` True
           assertAllClose (def :: Tol Double) (resultSolution result) [1,1]
 

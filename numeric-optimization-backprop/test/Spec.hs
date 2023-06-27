@@ -3,6 +3,7 @@
 import Test.Hspec
 
 import Control.Monad
+import Numeric.Optimization
 import Numeric.Optimization.Backprop
 import Lens.Micro
 import IsClose
@@ -14,7 +15,7 @@ main = hspec $ do
     when (isSupportedMethod LBFGS) $ do
       context "when given rosenbrock function to LBFGS" $
         it "returns the global optimum" $ do
-          result <- minimize LBFGS def rosenbrock Nothing [] (-3,-4)
+          result <- minimize LBFGS def (UsingBackprop rosenbrock) (-3,-4)
           resultSuccess result `shouldBe` True
           assertAllClose (def :: Tol Double) (resultSolution result) (1,1)
 
