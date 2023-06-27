@@ -5,7 +5,7 @@ cabal-version: 1.12
 -- see: https://github.com/sol/hpack
 
 name:           numeric-optimization-backprop
-version:        0.1.0.1
+version:        0.2.0.0
 synopsis:       Wrapper of numeric-optimization package for using with backprop package
 description:    Please see the README on GitHub at <https://github.com/msakai/nonlinear-optimization-ad/tree/master/numeric-optimization-backprop#readme>
 category:       Math, Algorithms, Optimisation, Optimization, Numeric, Numerical
@@ -53,7 +53,7 @@ library
     , data-default-class >=0.1.2.0 && <0.2
     , mono-traversable >=1.0.15.1 && <1.1
     , mtl >=2.2.2 && <2.4
-    , numeric-optimization >=0.1.0.0 && <0.2.0.0
+    , numeric-optimization >=0.2.0.0 && <0.3.0.0
     , primitive >=0.6.4.0
     , reflection >=2.1.5
     , vector >=0.12.0.2 && <0.14
@@ -71,7 +71,7 @@ executable rosenbrock-backprop
     , containers >=0.6.0.1 && <0.7
     , data-default-class >=0.1.2.0 && <0.2
     , microlens >=0.4.10 && <0.5
-    , numeric-optimization >=0.1.0.0 && <0.2.0.0
+    , numeric-optimization >=0.2.0.0 && <0.3.0.0
     , numeric-optimization-backprop
   default-language: Haskell2010
   if flag(build-examples)
@@ -95,6 +95,6 @@ test-suite numeric-optimization-backprop-test
     , data-default-class >=0.1.2.0 && <0.2
     , hspec >=2.7.1 && <3.0
     , microlens >=0.4.10 && <0.5
-    , numeric-optimization >=0.1.0.0 && <0.2.0.0
+    , numeric-optimization >=0.2.0.0 && <0.3.0.0
     , numeric-optimization-backprop
   default-language: Haskell2010

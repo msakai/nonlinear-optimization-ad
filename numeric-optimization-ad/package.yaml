@@ -1,5 +1,5 @@
 name:                numeric-optimization-ad
-version:             0.1.0.1
+version:             0.2.0.0
 github:              "msakai/nonlinear-optimization-ad"
 license:             BSD3
 author:              "Masahiro Sakai"
@@ -36,7 +36,7 @@ flags:
 dependencies:
 - base >=4.12 && <5
 - data-default-class
-- numeric-optimization >=0.1.0.0 && <0.2.0.0
+- numeric-optimization >=0.2.0.0 && <0.3.0.0
 
 ghc-options:
 - -Wall
