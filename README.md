@@ -10,7 +10,7 @@ Packages for using [nonlinear-optimization](https://hackage.haskell.org/package/
 with automatic differentiation.
 
 * [nonlinear-optimization-ad](nonlinear-optimization-ad/) for using with [ad](https://hackage.haskell.org/package/ad) package
-* [nonlinear-optimization-backprop](nonlinear-optimization-backprop/) for using with [ad](https://hackage.haskell.org/package/backprop) package
+* [nonlinear-optimization-backprop](nonlinear-optimization-backprop/) for using with [backprop](https://hackage.haskell.org/package/backprop) package
 
 ## `numeric-optimization` family
 
