@@ -341,14 +341,28 @@ instance Exception OptimizationException
 -- define instance of 'IsProblem' by yourself.
 
 -- | Optimization problems
+--
+-- Laws that should be satisfied:
+--
+-- * @'updateFromVector' prob a ('toVector' prob a) = a@
+--
+-- * @'updateFromVector' prob ('updateFromVector' prob a v1) v2 = 'updateFromVector' prob a v2@
 class IsProblem prob where
+  -- | Type of input values and gradients
   type Domain prob
 
+  -- | Convert a @'Domain' prob@ value to a storable 'Vector'.
   toVector :: prob -> Domain prob -> Vector Double
 
+  -- | Write a value of @'Domain' prob@ to a storable 'VSM.MVector'.
+  -- 
+  -- It can be thought as a variant of 'toVector' in destination-passing style.
   writeToMVector :: PrimMonad m => prob -> Domain prob -> VSM.MVector (PrimState m) Double -> m ()
   writeToMVector prob x ret = VG.imapM_ (VGM.write ret) (toVector prob x)
 
+  -- | Convert a storable 'Vector' back to a value of @'Domain' prob@
+  --
+  -- The @'Domain' prob@ argument is used as the return value's /shape/.
   updateFromVector :: prob -> Domain prob -> Vector Double -> Domain prob
 
   -- | Objective function
