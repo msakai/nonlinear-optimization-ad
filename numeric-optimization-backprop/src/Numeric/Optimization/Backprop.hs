@@ -33,7 +33,8 @@ module Numeric.Optimization.Backprop
 
 import Numeric.Backprop
 import Numeric.Optimization
-import Numeric.Optimization.Backprop.ToVector
+import Numeric.Optimization.Backprop.ToVector (ToVector)
+import qualified Numeric.Optimization.Backprop.ToVector as ToVector
 
 
 -- | Type for defining function and its gradient using automatic differentiation
@@ -69,11 +70,11 @@ data UsingBackprop a
 instance (ToVector a) => IsProblem (UsingBackprop a) where
   type Domain (UsingBackprop a) = a
 
-  fromDomain _ = toVector
+  toVector _ = ToVector.toVector
 
-  fromDomainM _ = writeToMVector
+  writeToMVector _ = ToVector.writeToMVector
 
-  toDomain _ = updateFromVector
+  updateFromVector _ = ToVector.updateFromVector
 
   func (UsingBackprop f) x = evalBP f x
 
@@ -88,7 +89,7 @@ instance (Backprop a, ToVector a) => HasGrad (UsingBackprop a) where
   grad'M (UsingBackprop f) x gvec = do
     case backprop f x of
       (y, g) -> do
-        writeToMVector g gvec
+        ToVector.writeToMVector g gvec
         return y
 
 

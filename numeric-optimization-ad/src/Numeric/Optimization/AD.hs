@@ -81,11 +81,11 @@ data UsingReverse f
 instance Traversable f => IsProblem (UsingReverse f) where
   type Domain (UsingReverse f) = f Double
 
-  fromDomain _ = VG.fromList . toList
+  toVector _ = VG.fromList . toList
 
-  fromDomainM _ = writeToMVector
+  writeToMVector _ = writeToMVector'
 
-  toDomain _ x0 vec = runST $ do
+  updateFromVector _ x0 vec = runST $ do
     counter <- newSTRef 0
     forM x0 $ \_ -> do
       i <- readSTRef counter
@@ -104,7 +104,7 @@ instance Traversable f => HasGrad (UsingReverse f) where
   grad'M (UsingReverse f) x gvec =
     case Reverse.grad' f x of
       (y, g) -> do
-        writeToMVector g gvec
+        writeToMVector' g gvec
         return y
 
 instance Traversable f => Optionally (HasGrad (UsingReverse f)) where
@@ -146,11 +146,11 @@ data UsingSparse f
 instance Traversable f => IsProblem (UsingSparse f) where
   type Domain (UsingSparse f) = f Double
 
-  fromDomain _ = VG.fromList . toList
+  toVector _ = VG.fromList . toList
 
-  fromDomainM _ = writeToMVector
+  writeToMVector _ = writeToMVector'
 
-  toDomain _ x0 vec = runST $ do
+  updateFromVector _ x0 vec = runST $ do
     counter <- newSTRef 0
     forM x0 $ \_ -> do
       i <- readSTRef counter
@@ -169,7 +169,7 @@ instance Traversable f => HasGrad (UsingSparse f) where
   grad'M (UsingSparse f) x gvec =
     case Sparse.grad' f x of
       (y, g) -> do
-        writeToMVector g gvec
+        writeToMVector' g gvec
         return y
 
 instance Traversable f => HasHessian (UsingSparse f) where
@@ -185,8 +185,8 @@ instance Traversable f => Optionally (HasHessian (UsingSparse f)) where
 
 -- ------------------------------------------------------------------------
 
-writeToMVector :: (PrimMonad m, VGM.MVector mv a, Traversable f) => f a -> mv (PrimState m) a -> m ()
-writeToMVector x vec = do
+writeToMVector' :: (PrimMonad m, VGM.MVector mv a, Traversable f) => f a -> mv (PrimState m) a -> m ()
+writeToMVector' x vec = do
   _ <- foldlM (\i v -> VGM.write vec i v >> return (i+1)) 0 x
   return ()
 

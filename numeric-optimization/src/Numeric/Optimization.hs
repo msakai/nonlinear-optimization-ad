@@ -344,12 +344,12 @@ instance Exception OptimizationException
 class IsProblem prob where
   type Domain prob
 
-  fromDomain :: prob -> Domain prob -> Vector Double
+  toVector :: prob -> Domain prob -> Vector Double
 
-  fromDomainM :: PrimMonad m => prob -> Domain prob -> VSM.MVector (PrimState m) Double -> m ()
-  fromDomainM prob x ret = VG.imapM_ (VGM.write ret) (fromDomain prob x)
+  writeToMVector :: PrimMonad m => prob -> Domain prob -> VSM.MVector (PrimState m) Double -> m ()
+  writeToMVector prob x ret = VG.imapM_ (VGM.write ret) (toVector prob x)
 
-  toDomain :: prob -> Domain prob -> Vector Double -> Domain prob
+  updateFromVector :: prob -> Domain prob -> Vector Double -> Domain prob
 
   -- | Objective function
   --
@@ -365,7 +365,7 @@ class IsProblem prob where
   constraints :: prob -> [Constraint]
   constraints _ = []
 
-  {-# MINIMAL fromDomain, toDomain, func #-}
+  {-# MINIMAL toVector, updateFromVector, func #-}
 
 
 -- | Optimization problem equipped with gradient information
@@ -379,16 +379,16 @@ class IsProblem prob => HasGrad prob where
   -- | Pair of 'func' and 'grad'
   grad' :: prob -> Domain prob -> (Double, Domain prob)
   grad' prob x = runST $ do
-    gret <- VGM.new (VG.length (fromDomain prob x))
+    gret <- VGM.new (VG.length (toVector prob x))
     y <- grad'M prob x gret
     g <- VG.unsafeFreeze gret
-    return (y, toDomain prob x g)
+    return (y, updateFromVector prob x g)
 
   -- | Similar to 'grad'' but destination passing style is used for gradient vector
   grad'M :: PrimMonad m => prob -> Domain prob -> VSM.MVector (PrimState m) Double -> m Double
   grad'M prob x gvec = do
     let y = func prob x
-    fromDomainM prob (grad prob x) gvec
+    writeToMVector prob (grad prob x) gvec
     return y
 
   {-# MINIMAL grad | grad' | grad'M #-}
@@ -407,7 +407,7 @@ class IsProblem prob => HasHessian prob where
   --
   -- See also <https://hackage.haskell.org/package/ad-4.5.4/docs/Numeric-AD.html#v:hessianProduct>.
   hessianProduct :: prob -> Domain prob -> Domain prob -> Domain prob
-  hessianProduct prob x v = toDomain prob x $ hessian prob x LA.#> fromDomain prob v
+  hessianProduct prob x v = updateFromVector prob x $ hessian prob x LA.#> toVector prob v
 
   {-# MINIMAL hessian #-}
 
@@ -476,9 +476,9 @@ minimize
   -> Domain prob  -- ^ Initial value
   -> IO (Result (Domain prob))
 minimize method params prob x0 = do
-  let x0' = fromDomain prob x0
-  ret <- minimizeV method (contramap (toDomain prob x0) params) (AsVectorProblem prob x0) x0'
-  return $ fmap (toDomain prob x0) ret
+  let x0' = toVector prob x0
+  ret <- minimizeV method (contramap (updateFromVector prob x0) params) (AsVectorProblem prob x0) x0'
+  return $ fmap (updateFromVector prob x0) ret
 
 minimizeV
   :: forall prob. (IsProblem prob, Optionally (HasGrad prob), Optionally (HasHessian prob))
@@ -856,8 +856,8 @@ minimize_Newton params prob x0 = do
 
 instance IsProblem (Vector Double -> Double) where
   type Domain (Vector Double -> Double) = Vector Double
-  toDomain _ _ = id
-  fromDomain _ = id
+  updateFromVector _ _ = id
+  toVector _ = id
 
   func f = f
 
@@ -874,8 +874,8 @@ data WithGrad prob = WithGrad prob (Domain prob -> Domain prob)
 
 instance IsProblem prob => IsProblem (WithGrad prob) where
   type Domain (WithGrad prob) = Domain prob
-  toDomain (WithGrad prob _g) x0 = toDomain prob x0
-  fromDomain (WithGrad prob _g) = fromDomain prob
+  updateFromVector (WithGrad prob _g) x0 = updateFromVector prob x0
+  toVector (WithGrad prob _g) = toVector prob
 
   func (WithGrad prob _g) = func prob
   bounds (WithGrad prob _g) = bounds prob
@@ -904,8 +904,8 @@ data WithHessian prob = WithHessian prob (Domain prob -> Matrix Double)
 
 instance IsProblem prob => IsProblem (WithHessian prob) where
   type Domain (WithHessian prob) = Domain prob
-  toDomain (WithHessian prob _hess) x0 = toDomain prob x0
-  fromDomain (WithHessian prob _hess) = fromDomain prob
+  updateFromVector (WithHessian prob _hess) x0 = updateFromVector prob x0
+  toVector (WithHessian prob _hess) = toVector prob
 
   func (WithHessian prob _hess) = func prob
   bounds (WithHessian prob _hess) = bounds prob
@@ -933,8 +933,8 @@ data WithBounds prob = WithBounds prob (V.Vector (Double, Double))
 
 instance IsProblem prob => IsProblem (WithBounds prob) where
   type Domain (WithBounds prob) = Domain prob
-  toDomain (WithBounds prob _bounds) x0 = toDomain prob x0
-  fromDomain (WithBounds prob _bounds) = fromDomain prob
+  updateFromVector (WithBounds prob _bounds) x0 = updateFromVector prob x0
+  toVector (WithBounds prob _bounds) = toVector prob
 
   func (WithBounds prob _bounds) = func prob
   bounds (WithBounds _prob bounds) = Just bounds
@@ -968,8 +968,8 @@ data WithConstraints prob = WithConstraints prob [Constraint]
 
 instance IsProblem prob => IsProblem (WithConstraints prob) where
   type Domain (WithConstraints prob) = Domain prob
-  toDomain (WithConstraints prob _constraints) x0 = toDomain prob x0
-  fromDomain (WithConstraints prob _constraints) = fromDomain prob
+  updateFromVector (WithConstraints prob _constraints) x0 = updateFromVector prob x0
+  toVector (WithConstraints prob _constraints) = toVector prob
 
   func (WithConstraints prob _constraints) = func prob
   bounds (WithConstraints prob _constraints) = bounds prob
@@ -1002,22 +1002,22 @@ data AsVectorProblem prob = AsVectorProblem prob (Domain prob)
 
 instance IsProblem prob => IsProblem (AsVectorProblem prob) where
   type Domain (AsVectorProblem prob) = Vector Double
-  toDomain _ _ = id
-  fromDomain _ = id
+  updateFromVector _ _ = id
+  toVector _ = id
 
-  func (AsVectorProblem prob x0) = func prob . toDomain prob x0
+  func (AsVectorProblem prob x0) = func prob . updateFromVector prob x0
   bounds (AsVectorProblem prob _x0) = bounds prob
   constraints (AsVectorProblem prob _x0) = constraints prob
 
 instance HasGrad prob => HasGrad (AsVectorProblem prob) where
-  grad (AsVectorProblem prob x0) x = fromDomain prob $ grad prob (toDomain prob x0 x)
+  grad (AsVectorProblem prob x0) x = toVector prob $ grad prob (updateFromVector prob x0 x)
   grad' (AsVectorProblem prob x0) x =
-    case grad' prob (toDomain prob x0 x) of
-      (y, g) -> (y, fromDomain prob g)
-  grad'M (AsVectorProblem prob x0) x ret = grad'M prob (toDomain prob x0 x) ret
+    case grad' prob (updateFromVector prob x0 x) of
+      (y, g) -> (y, toVector prob g)
+  grad'M (AsVectorProblem prob x0) x ret = grad'M prob (updateFromVector prob x0 x) ret
 
 instance HasHessian prob => HasHessian (AsVectorProblem prob) where
-  hessian (AsVectorProblem prob x0) x = hessian prob (toDomain prob x0 x)
-  hessianProduct (AsVectorProblem prob x0) x v = fromDomain prob $ hessianProduct prob (toDomain prob x0 x) (toDomain prob x0 v)
+  hessian (AsVectorProblem prob x0) x = hessian prob (updateFromVector prob x0 x)
+  hessianProduct (AsVectorProblem prob x0) x v = toVector prob $ hessianProduct prob (updateFromVector prob x0 x) (updateFromVector prob x0 v)
 
 -- ------------------------------------------------------------------------
