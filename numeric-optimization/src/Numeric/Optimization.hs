@@ -858,6 +858,7 @@ instance IsProblem (Vector Double -> Double) where
   type Domain (Vector Double -> Double) = Vector Double
   updateFromVector _ _ = id
   toVector _ = id
+  -- default implementation of 'writeToMVector' is what we want
 
   func f = f
 
@@ -876,6 +877,7 @@ instance IsProblem prob => IsProblem (WithGrad prob) where
   type Domain (WithGrad prob) = Domain prob
   updateFromVector (WithGrad prob _g) x0 = updateFromVector prob x0
   toVector (WithGrad prob _g) = toVector prob
+  writeToMVector (WithGrad prob _g) = writeToMVector prob
 
   func (WithGrad prob _g) = func prob
   bounds (WithGrad prob _g) = bounds prob
@@ -906,6 +908,7 @@ instance IsProblem prob => IsProblem (WithHessian prob) where
   type Domain (WithHessian prob) = Domain prob
   updateFromVector (WithHessian prob _hess) x0 = updateFromVector prob x0
   toVector (WithHessian prob _hess) = toVector prob
+  writeToMVector (WithHessian prob _g) = writeToMVector prob
 
   func (WithHessian prob _hess) = func prob
   bounds (WithHessian prob _hess) = bounds prob
@@ -935,6 +938,7 @@ instance IsProblem prob => IsProblem (WithBounds prob) where
   type Domain (WithBounds prob) = Domain prob
   updateFromVector (WithBounds prob _bounds) x0 = updateFromVector prob x0
   toVector (WithBounds prob _bounds) = toVector prob
+  writeToMVector (WithBounds prob _g) = writeToMVector prob
 
   func (WithBounds prob _bounds) = func prob
   bounds (WithBounds _prob bounds) = Just bounds
@@ -970,6 +974,7 @@ instance IsProblem prob => IsProblem (WithConstraints prob) where
   type Domain (WithConstraints prob) = Domain prob
   updateFromVector (WithConstraints prob _constraints) x0 = updateFromVector prob x0
   toVector (WithConstraints prob _constraints) = toVector prob
+  writeToMVector (WithConstraints prob _g) = writeToMVector prob
 
   func (WithConstraints prob _constraints) = func prob
   bounds (WithConstraints prob _constraints) = bounds prob
@@ -1004,6 +1009,7 @@ instance IsProblem prob => IsProblem (AsVectorProblem prob) where
   type Domain (AsVectorProblem prob) = Vector Double
   updateFromVector _ _ = id
   toVector _ = id
+  -- default implementation of 'writeToMVector' is what we want
 
   func (AsVectorProblem prob x0) = func prob . updateFromVector prob x0
   bounds (AsVectorProblem prob _x0) = bounds prob
