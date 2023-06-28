@@ -96,6 +96,8 @@ instance Traversable f => IsProblem (UsingReverse f) where
 instance Traversable f => HasGrad (UsingReverse f) where
   grad (UsingReverse f) x = Reverse.grad f x
 
+  grad' (UsingReverse f) x = Reverse.grad' f x
+
   grad'M (UsingReverse f) x gvec =
     case Reverse.grad' f x of
       (y, g) -> do
@@ -155,6 +157,8 @@ instance Traversable f => IsProblem (UsingSparse f) where
 
 instance Traversable f => HasGrad (UsingSparse f) where
   grad (UsingSparse f) x = Sparse.grad f x
+
+  grad' (UsingSparse f) x = Sparse.grad' f x
 
   grad'M (UsingSparse f) x gvec =
     case Sparse.grad' f x of
