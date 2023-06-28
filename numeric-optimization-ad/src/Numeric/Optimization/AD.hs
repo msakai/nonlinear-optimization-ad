@@ -85,12 +85,7 @@ instance Traversable f => IsProblem (UsingReverse f) where
 
   writeToMVector _ = writeToMVector'
 
-  updateFromVector _ x0 vec = runST $ do
-    counter <- newSTRef 0
-    forM x0 $ \_ -> do
-      i <- readSTRef counter
-      writeSTRef counter $! i+1
-      return $ vec VG.! i
+  updateFromVector _ = updateFromVector'
 
   func (UsingReverse f) x = fst $ Reverse.grad' f x
 
@@ -150,12 +145,7 @@ instance Traversable f => IsProblem (UsingSparse f) where
 
   writeToMVector _ = writeToMVector'
 
-  updateFromVector _ x0 vec = runST $ do
-    counter <- newSTRef 0
-    forM x0 $ \_ -> do
-      i <- readSTRef counter
-      writeSTRef counter $! i+1
-      return $ vec VG.! i
+  updateFromVector _ = updateFromVector'
 
   func (UsingSparse f) x = fst $ Sparse.grad' f x
 
@@ -189,5 +179,13 @@ writeToMVector' :: (PrimMonad m, VGM.MVector mv a, Traversable f) => f a -> mv (
 writeToMVector' x vec = do
   _ <- foldlM (\i v -> VGM.write vec i v >> return (i+1)) 0 x
   return ()
+
+updateFromVector' :: (VG.Vector v a, Traversable f) => f a -> v a -> f a
+updateFromVector' x0 vec = runST $ do
+  counter <- newSTRef 0
+  forM x0 $ \_ -> do
+    i <- readSTRef counter
+    writeSTRef counter $! i+1
+    return $ vec VG.! i
 
 -- ------------------------------------------------------------------------
