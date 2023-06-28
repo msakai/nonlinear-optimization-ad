@@ -70,6 +70,8 @@ data UsingBackprop a
 instance (ToVector a) => IsProblem (UsingBackprop a) where
   type Domain (UsingBackprop a) = a
 
+  dim _ = ToVector.dim
+
   toVector _ = ToVector.toVector
 
   writeToMVector _ = ToVector.writeToMVector

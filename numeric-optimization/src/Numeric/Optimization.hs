@@ -79,6 +79,7 @@ import qualified Data.Vector as V
 import Data.Vector.Storable (Vector)
 import qualified Data.Vector.Generic as VG
 import qualified Data.Vector.Generic.Mutable as VGM
+import qualified Data.Vector.Storable as VS
 import qualified Data.Vector.Storable.Mutable as VSM
 import Foreign.C
 #ifdef WITH_LBFGS
@@ -344,6 +345,8 @@ instance Exception OptimizationException
 --
 -- Laws that should be satisfied:
 --
+-- * @'VS.length' . 'toVector' prob = 'dim' prob@
+--
 -- * @'updateFromVector' prob a ('toVector' prob a) = a@
 --
 -- * @'updateFromVector' prob ('updateFromVector' prob a v1) v2 = 'updateFromVector' prob a v2@
@@ -351,8 +354,16 @@ class IsProblem prob where
   -- | Type of input values and gradients
   type Domain prob
 
+  -- | Dimention of a @'Domain' prob@ value.
+  dim :: prob -> Domain prob -> Int
+  dim prob x = VS.length $ toVector prob x
+
   -- | Convert a @'Domain' prob@ value to a storable 'Vector'.
   toVector :: prob -> Domain prob -> Vector Double
+  toVector prob x = VS.create $ do
+    vec <- VSM.new (dim prob x)
+    writeToMVector prob x vec
+    return vec
 
   -- | Write a value of @'Domain' prob@ to a storable 'VSM.MVector'.
   -- 
@@ -379,7 +390,7 @@ class IsProblem prob where
   constraints :: prob -> [Constraint]
   constraints _ = []
 
-  {-# MINIMAL toVector, updateFromVector, func #-}
+  {-# MINIMAL (toVector | dim, writeToMVector), updateFromVector, func #-}
 
 
 -- | Optimization problem equipped with gradient information
@@ -393,7 +404,7 @@ class IsProblem prob => HasGrad prob where
   -- | Pair of 'func' and 'grad'
   grad' :: prob -> Domain prob -> (Double, Domain prob)
   grad' prob x = runST $ do
-    gret <- VGM.new (VG.length (toVector prob x))
+    gret <- VGM.new (dim prob x)
     y <- grad'M prob x gret
     g <- VG.unsafeFreeze gret
     return (y, updateFromVector prob x g)
@@ -870,6 +881,7 @@ minimize_Newton params prob x0 = do
 
 instance IsProblem (Vector Double -> Double) where
   type Domain (Vector Double -> Double) = Vector Double
+  dim _ = VG.length
   updateFromVector _ _ = id
   toVector _ = id
   -- default implementation of 'writeToMVector' is what we want
@@ -889,6 +901,7 @@ data WithGrad prob = WithGrad prob (Domain prob -> Domain prob)
 
 instance IsProblem prob => IsProblem (WithGrad prob) where
   type Domain (WithGrad prob) = Domain prob
+  dim (WithGrad prob _g) = dim prob
   updateFromVector (WithGrad prob _g) x0 = updateFromVector prob x0
   toVector (WithGrad prob _g) = toVector prob
   writeToMVector (WithGrad prob _g) = writeToMVector prob
@@ -920,6 +933,7 @@ data WithHessian prob = WithHessian prob (Domain prob -> Matrix Double)
 
 instance IsProblem prob => IsProblem (WithHessian prob) where
   type Domain (WithHessian prob) = Domain prob
+  dim (WithHessian prob _hess) = dim prob
   updateFromVector (WithHessian prob _hess) x0 = updateFromVector prob x0
   toVector (WithHessian prob _hess) = toVector prob
   writeToMVector (WithHessian prob _g) = writeToMVector prob
@@ -950,6 +964,7 @@ data WithBounds prob = WithBounds prob (V.Vector (Double, Double))
 
 instance IsProblem prob => IsProblem (WithBounds prob) where
   type Domain (WithBounds prob) = Domain prob
+  dim (WithBounds prob _bounds) = dim prob
   updateFromVector (WithBounds prob _bounds) x0 = updateFromVector prob x0
   toVector (WithBounds prob _bounds) = toVector prob
   writeToMVector (WithBounds prob _g) = writeToMVector prob
@@ -986,6 +1001,7 @@ data WithConstraints prob = WithConstraints prob [Constraint]
 
 instance IsProblem prob => IsProblem (WithConstraints prob) where
   type Domain (WithConstraints prob) = Domain prob
+  dim (WithConstraints prob _constraints) = dim prob
   updateFromVector (WithConstraints prob _constraints) x0 = updateFromVector prob x0
   toVector (WithConstraints prob _constraints) = toVector prob
   writeToMVector (WithConstraints prob _g) = writeToMVector prob
@@ -1021,6 +1037,7 @@ data AsVectorProblem prob = AsVectorProblem prob (Domain prob)
 
 instance IsProblem prob => IsProblem (AsVectorProblem prob) where
   type Domain (AsVectorProblem prob) = Vector Double
+  dim (AsVectorProblem prob x0) _ = dim prob x0
   updateFromVector _ _ = id
   toVector _ = id
   -- default implementation of 'writeToMVector' is what we want

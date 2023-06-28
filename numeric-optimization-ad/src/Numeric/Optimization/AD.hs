@@ -81,6 +81,8 @@ data UsingReverse f
 instance Traversable f => IsProblem (UsingReverse f) where
   type Domain (UsingReverse f) = f Double
 
+  dim _ = length
+
   toVector _ = VG.fromList . toList
 
   writeToMVector _ = writeToMVector'
@@ -142,6 +144,8 @@ data UsingSparse f
 
 instance Traversable f => IsProblem (UsingSparse f) where
   type Domain (UsingSparse f) = f Double
+
+  dim _ = length
 
   toVector _ = VG.fromList . toList
 
