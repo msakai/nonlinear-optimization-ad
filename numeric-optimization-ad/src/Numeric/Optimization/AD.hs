@@ -75,6 +75,8 @@ import Numeric.Optimization
 -- >
 -- > sq :: Floating a => a -> a
 -- > sq x = x ** 2
+--
+-- @since 0.2.0.0
 data UsingReverse f
   = UsingReverse (forall s. Reifies s Tape => f (Reverse s Double) -> Reverse s Double)
 
@@ -139,6 +141,8 @@ instance Optionally (HasHessian (UsingReverse f)) where
 -- >
 -- > sq :: Floating a => a -> a
 -- > sq x = x ** 2
+--
+-- @since 0.2.0.0
 data UsingSparse f
   = UsingSparse (forall s. f (AD s (Sparse Double)) -> AD s (Sparse Double))
 

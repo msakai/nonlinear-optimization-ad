@@ -63,6 +63,8 @@ import qualified Numeric.Optimization.Backprop.ToVector as ToVector
 -- >
 -- > sq :: Floating a => a -> a
 -- > sq x = x ** 2
+--
+-- @since 0.2.0.0
 data UsingBackprop a
   = UsingBackprop (forall s. Reifies s W => BVar s a -> BVar s Double)
 

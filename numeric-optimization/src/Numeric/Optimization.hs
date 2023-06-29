@@ -352,13 +352,19 @@ instance Exception OptimizationException
 -- * @'updateFromVector' prob ('updateFromVector' prob a v1) v2 = 'updateFromVector' prob a v2@
 class IsProblem prob where
   -- | Type of input values and gradients
+  --
+  -- @since 0.2.0.0
   type Domain prob
 
   -- | Dimention of a @'Domain' prob@ value.
+  --
+  -- @since 0.2.0.0
   dim :: prob -> Domain prob -> Int
   dim prob x = VS.length $ toVector prob x
 
   -- | Convert a @'Domain' prob@ value to a storable 'Vector'.
+  --
+  -- @since 0.2.0.0
   toVector :: prob -> Domain prob -> Vector Double
   toVector prob x = VS.create $ do
     vec <- VSM.new (dim prob x)
@@ -368,12 +374,16 @@ class IsProblem prob where
   -- | Write a value of @'Domain' prob@ to a storable 'VSM.MVector'.
   -- 
   -- It can be thought as a variant of 'toVector' in destination-passing style.
+  --
+  -- @since 0.2.0.0
   writeToMVector :: PrimMonad m => prob -> Domain prob -> VSM.MVector (PrimState m) Double -> m ()
   writeToMVector prob x ret = VG.imapM_ (VGM.write ret) (toVector prob x)
 
   -- | Convert a storable 'Vector' back to a value of @'Domain' prob@
   --
   -- The @'Domain' prob@ argument is used as the return value's /shape/.
+  --
+  -- @since 0.2.0.0
   updateFromVector :: prob -> Domain prob -> Vector Double -> Domain prob
 
   -- | Objective function
