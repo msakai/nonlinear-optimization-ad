@@ -8,9 +8,7 @@ and this project adheres to the
 
 ## 0.2.0.0 - Unreleased
 
-* Introduced assosiated type `Domain` to the `IsProblem` type class:
-  Now `Domain prob` instead of `Vector Double` is used to represent
-  inputs and gradients.
+* Redesign API using newly introduced `Domain` type.
 
 ## 0.1.0.1 - 2023-06-03
 
