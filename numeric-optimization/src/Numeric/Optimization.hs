@@ -6,6 +6,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numeric.Optimization
@@ -78,6 +79,7 @@ import qualified Data.Vector as V
 import Data.Vector.Storable (Vector)
 import qualified Data.Vector.Generic as VG
 import qualified Data.Vector.Generic.Mutable as VGM
+import qualified Data.Vector.Storable as VS
 import qualified Data.Vector.Storable.Mutable as VSM
 import Foreign.C
 #ifdef WITH_LBFGS
@@ -340,11 +342,54 @@ instance Exception OptimizationException
 -- define instance of 'IsProblem' by yourself.
 
 -- | Optimization problems
+--
+-- Laws that should be satisfied:
+--
+-- * @'VS.length' . 'toVector' prob = 'dim' prob@
+--
+-- * @'updateFromVector' prob a ('toVector' prob a) = a@
+--
+-- * @'updateFromVector' prob ('updateFromVector' prob a v1) v2 = 'updateFromVector' prob a v2@
 class IsProblem prob where
+  -- | Type of input values and gradients
+  --
+  -- @since 0.2.0.0
+  type Domain prob
+
+  -- | Dimention of a @'Domain' prob@ value.
+  --
+  -- @since 0.2.0.0
+  dim :: prob -> Domain prob -> Int
+  dim prob x = VS.length $ toVector prob x
+
+  -- | Convert a @'Domain' prob@ value to a storable 'Vector'.
+  --
+  -- @since 0.2.0.0
+  toVector :: prob -> Domain prob -> Vector Double
+  toVector prob x = VS.create $ do
+    vec <- VSM.new (dim prob x)
+    writeToMVector prob x vec
+    return vec
+
+  -- | Write a value of @'Domain' prob@ to a storable 'VSM.MVector'.
+  -- 
+  -- It can be thought as a variant of 'toVector' in destination-passing style.
+  --
+  -- @since 0.2.0.0
+  writeToMVector :: PrimMonad m => prob -> Domain prob -> VSM.MVector (PrimState m) Double -> m ()
+  writeToMVector prob x ret = VG.imapM_ (VGM.write ret) (toVector prob x)
+
+  -- | Convert a storable 'Vector' back to a value of @'Domain' prob@
+  --
+  -- The @'Domain' prob@ argument is used as the return value's /shape/.
+  --
+  -- @since 0.2.0.0
+  updateFromVector :: prob -> Domain prob -> Vector Double -> Domain prob
+
   -- | Objective function
   --
   -- It is called @fun@ in @scipy.optimize.minimize@.
-  func :: prob -> Vector Double -> Double
+  func :: prob -> Domain prob -> Double
 
   -- | Bounds
   --
@@ -355,7 +400,7 @@ class IsProblem prob where
   constraints :: prob -> [Constraint]
   constraints _ = []
 
-  {-# MINIMAL func #-}
+  {-# MINIMAL (toVector | dim, writeToMVector), updateFromVector, func #-}
 
 
 -- | Optimization problem equipped with gradient information
@@ -363,22 +408,22 @@ class IsProblem prob => HasGrad prob where
   -- | Gradient of a function computed by 'func'
   --
   -- It is called @jac@ in @scipy.optimize.minimize@.
-  grad :: prob -> Vector Double -> Vector Double
+  grad :: prob -> Domain prob -> Domain prob
   grad prob = snd . grad' prob
 
   -- | Pair of 'func' and 'grad'
-  grad' :: prob -> Vector Double -> (Double, Vector Double)
+  grad' :: prob -> Domain prob -> (Double, Domain prob)
   grad' prob x = runST $ do
-    gret <- VGM.new (VG.length x)
+    gret <- VGM.new (dim prob x)
     y <- grad'M prob x gret
     g <- VG.unsafeFreeze gret
-    return (y, g)
+    return (y, updateFromVector prob x g)
 
   -- | Similar to 'grad'' but destination passing style is used for gradient vector
-  grad'M :: PrimMonad m => prob -> Vector Double -> VSM.MVector (PrimState m) Double -> m Double
+  grad'M :: PrimMonad m => prob -> Domain prob -> VSM.MVector (PrimState m) Double -> m Double
   grad'M prob x gvec = do
     let y = func prob x
-    VG.imapM_ (VGM.write gvec) (grad prob x)
+    writeToMVector prob (grad prob x) gvec
     return y
 
   {-# MINIMAL grad | grad' | grad'M #-}
@@ -389,15 +434,15 @@ class IsProblem prob => HasHessian prob where
   -- | Hessian of a function computed by 'func'
   --
   -- It is called @hess@ in @scipy.optimize.minimize@.
-  hessian :: prob -> Vector Double -> Matrix Double
+  hessian :: prob -> Domain prob -> Matrix Double
 
   -- | The product of the hessian @H@ of a function @f@ at @x@ with a vector @x@.
   --
   -- It is called @hessp@ in @scipy.optimize.minimize@.
   --
   -- See also <https://hackage.haskell.org/package/ad-4.5.4/docs/Numeric-AD.html#v:hessianProduct>.
-  hessianProduct :: prob -> Vector Double -> Vector Double -> Vector Double
-  hessianProduct prob x v = hessian prob x LA.#> v
+  hessianProduct :: prob -> Domain prob -> Domain prob -> Domain prob
+  hessianProduct prob x v = updateFromVector prob x $ hessian prob x LA.#> toVector prob v
 
   {-# MINIMAL hessian #-}
 
@@ -461,41 +506,53 @@ isUnconstainedBounds = V.all p
 minimize
   :: forall prob. (IsProblem prob, Optionally (HasGrad prob), Optionally (HasHessian prob))
   => Method  -- ^ Numerical optimization algorithm to use
-  -> Params (Vector Double) -- ^ Parameters for optimization algorithms. Use 'def' as a default.
+  -> Params (Domain prob) -- ^ Parameters for optimization algorithms. Use 'def' as a default.
   -> prob  -- ^ Optimization problem to solve
+  -> Domain prob  -- ^ Initial value
+  -> IO (Result (Domain prob))
+minimize method params prob x0 = do
+  let x0' = toVector prob x0
+  ret <- minimizeV method (contramap (updateFromVector prob x0) params) (AsVectorProblem prob x0) x0'
+  return $ fmap (updateFromVector prob x0) ret
+
+minimizeV
+  :: forall prob. (IsProblem prob, Optionally (HasGrad prob), Optionally (HasHessian prob))
+  => Method  -- ^ Numerical optimization algorithm to use
+  -> Params (Vector Double) -- ^ Parameters for optimization algorithms. Use 'def' as a default.
+  -> AsVectorProblem prob  -- ^ Optimization problem to solve
   -> Vector Double  -- ^ Initial value
   -> IO (Result (Vector Double))
 #ifdef WITH_CG_DESCENT
-minimize CGDescent =
+minimizeV CGDescent =
   case optionalDict @(HasGrad prob) of
     Just Dict -> minimize_CGDescent
     Nothing -> \_ _ _ -> throwIO GradUnavailable
 #endif
 #ifdef WITH_LBFGS
-minimize LBFGS =
+minimizeV LBFGS =
   case optionalDict @(HasGrad prob) of
     Just Dict -> minimize_LBFGS
     Nothing -> \_ _ _ -> throwIO GradUnavailable
 #endif
 #ifdef WITH_LBFGSB
-minimize LBFGSB =
+minimizeV LBFGSB =
   case optionalDict @(HasGrad prob) of
     Just Dict -> minimize_LBFGSB
     Nothing -> \_ _ _ -> throwIO GradUnavailable
 #endif
-minimize Newton =
+minimizeV Newton =
   case optionalDict @(HasGrad prob) of
     Nothing -> \_ _ _ -> throwIO GradUnavailable
     Just Dict ->
       case optionalDict @(HasHessian prob) of
         Nothing -> \_ _ _ -> throwIO HessianUnavailable
         Just Dict -> minimize_Newton
-minimize method = \_ _ _ -> throwIO (UnsupportedMethod method)
+minimizeV method = \_ _ _ -> throwIO (UnsupportedMethod method)
 
 
 #ifdef WITH_CG_DESCENT
 
-minimize_CGDescent :: HasGrad prob => Params (Vector Double) -> prob -> Vector Double -> IO (Result (Vector Double))
+minimize_CGDescent :: HasGrad prob => Params (Vector Double) -> AsVectorProblem prob -> Vector Double -> IO (Result (Vector Double))
 minimize_CGDescent _params prob _ | not (isNothing (bounds prob)) = throwIO (UnsupportedProblem "CGDescent does not support bounds")
 minimize_CGDescent _params prob _ | not (null (constraints prob)) = throwIO (UnsupportedProblem "CGDescent does not support constraints")
 minimize_CGDescent params prob x0 = do
@@ -574,7 +631,7 @@ minimize_CGDescent params prob x0 = do
 
 #ifdef WITH_LBFGS
 
-minimize_LBFGS :: HasGrad prob => Params (Vector Double) -> prob -> Vector Double -> IO (Result (Vector Double))
+minimize_LBFGS :: HasGrad prob => Params (Vector Double) -> AsVectorProblem prob -> Vector Double -> IO (Result (Vector Double))
 minimize_LBFGS _params prob _ | not (isNothing (bounds prob)) = throwIO (UnsupportedProblem "LBFGS does not support bounds")
 minimize_LBFGS _params prob _ | not (null (constraints prob)) = throwIO (UnsupportedProblem "LBFGS does not support constraints")
 minimize_LBFGS params prob x0 = do
@@ -685,7 +742,7 @@ minimize_LBFGS params prob x0 = do
 
 #ifdef WITH_LBFGSB
 
-minimize_LBFGSB :: HasGrad prob => Params (Vector Double) -> prob -> Vector Double -> IO (Result (Vector Double))
+minimize_LBFGSB :: HasGrad prob => Params (Vector Double) -> AsVectorProblem prob -> Vector Double -> IO (Result (Vector Double))
 minimize_LBFGSB _params prob _ | not (null (constraints prob)) = throwIO (UnsupportedProblem "LBFGSB does not support constraints")
 minimize_LBFGSB params prob x0 = do
   funcEvalRef <- newIORef (0::Int)
@@ -762,7 +819,7 @@ minimize_LBFGSB params prob x0 = do
 #endif
 
 
-minimize_Newton :: (HasGrad prob, HasHessian prob) => Params (Vector Double) -> prob -> Vector Double -> IO (Result (Vector Double))
+minimize_Newton :: (HasGrad prob, HasHessian prob) => Params (Vector Double) -> AsVectorProblem prob -> Vector Double -> IO (Result (Vector Double))
 minimize_Newton _params prob _ | not (isNothing (bounds prob)) = throwIO (UnsupportedProblem "Newton does not support bounds")
 minimize_Newton _params prob _ | not (null (constraints prob)) = throwIO (UnsupportedProblem "Newton does not support constraints")
 minimize_Newton params prob x0 = do
@@ -833,6 +890,12 @@ minimize_Newton params prob x0 = do
 -- ------------------------------------------------------------------------
 
 instance IsProblem (Vector Double -> Double) where
+  type Domain (Vector Double -> Double) = Vector Double
+  dim _ = VG.length
+  updateFromVector _ _ = id
+  toVector _ = id
+  -- default implementation of 'writeToMVector' is what we want
+
   func f = f
 
 instance Optionally (HasGrad (Vector Double -> Double)) where
@@ -844,9 +907,15 @@ instance Optionally (HasHessian (Vector Double -> Double)) where
 -- ------------------------------------------------------------------------
 
 -- | Wrapper type for adding gradient function to a problem
-data WithGrad prob = WithGrad prob (Vector Double -> Vector Double)
+data WithGrad prob = WithGrad prob (Domain prob -> Domain prob)
 
 instance IsProblem prob => IsProblem (WithGrad prob) where
+  type Domain (WithGrad prob) = Domain prob
+  dim (WithGrad prob _g) = dim prob
+  updateFromVector (WithGrad prob _g) x0 = updateFromVector prob x0
+  toVector (WithGrad prob _g) = toVector prob
+  writeToMVector (WithGrad prob _g) = writeToMVector prob
+
   func (WithGrad prob _g) = func prob
   bounds (WithGrad prob _g) = bounds prob
   constraints (WithGrad prob _g) = constraints prob
@@ -870,9 +939,15 @@ instance Optionally (HasHessian prob) => Optionally (HasHessian (WithGrad prob))
 -- ------------------------------------------------------------------------
 
 -- | Wrapper type for adding hessian to a problem
-data WithHessian prob = WithHessian prob (Vector Double -> Matrix Double)
+data WithHessian prob = WithHessian prob (Domain prob -> Matrix Double)
 
 instance IsProblem prob => IsProblem (WithHessian prob) where
+  type Domain (WithHessian prob) = Domain prob
+  dim (WithHessian prob _hess) = dim prob
+  updateFromVector (WithHessian prob _hess) x0 = updateFromVector prob x0
+  toVector (WithHessian prob _hess) = toVector prob
+  writeToMVector (WithHessian prob _g) = writeToMVector prob
+
   func (WithHessian prob _hess) = func prob
   bounds (WithHessian prob _hess) = bounds prob
   constraints (WithHessian prob _hess) = constraints prob
@@ -898,6 +973,12 @@ instance IsProblem prob => Optionally (HasHessian (WithHessian prob)) where
 data WithBounds prob = WithBounds prob (V.Vector (Double, Double))
 
 instance IsProblem prob => IsProblem (WithBounds prob) where
+  type Domain (WithBounds prob) = Domain prob
+  dim (WithBounds prob _bounds) = dim prob
+  updateFromVector (WithBounds prob _bounds) x0 = updateFromVector prob x0
+  toVector (WithBounds prob _bounds) = toVector prob
+  writeToMVector (WithBounds prob _g) = writeToMVector prob
+
   func (WithBounds prob _bounds) = func prob
   bounds (WithBounds _prob bounds) = Just bounds
   constraints (WithBounds prob _bounds) = constraints prob
@@ -929,6 +1010,12 @@ instance Optionally (HasHessian prob) => Optionally (HasHessian (WithBounds prob
 data WithConstraints prob = WithConstraints prob [Constraint]
 
 instance IsProblem prob => IsProblem (WithConstraints prob) where
+  type Domain (WithConstraints prob) = Domain prob
+  dim (WithConstraints prob _constraints) = dim prob
+  updateFromVector (WithConstraints prob _constraints) x0 = updateFromVector prob x0
+  toVector (WithConstraints prob _constraints) = toVector prob
+  writeToMVector (WithConstraints prob _g) = writeToMVector prob
+
   func (WithConstraints prob _constraints) = func prob
   bounds (WithConstraints prob _constraints) = bounds prob
   constraints (WithConstraints _prob constraints) = constraints
@@ -953,5 +1040,31 @@ instance Optionally (HasHessian prob) => Optionally (HasHessian (WithConstraints
     case optionalDict @(HasHessian prob) of
       Just Dict -> hasOptionalDict
       Nothing -> Nothing
+
+-- ------------------------------------------------------------------------
+
+data AsVectorProblem prob = AsVectorProblem prob (Domain prob)
+
+instance IsProblem prob => IsProblem (AsVectorProblem prob) where
+  type Domain (AsVectorProblem prob) = Vector Double
+  dim (AsVectorProblem prob x0) _ = dim prob x0
+  updateFromVector _ _ = id
+  toVector _ = id
+  -- default implementation of 'writeToMVector' is what we want
+
+  func (AsVectorProblem prob x0) = func prob . updateFromVector prob x0
+  bounds (AsVectorProblem prob _x0) = bounds prob
+  constraints (AsVectorProblem prob _x0) = constraints prob
+
+instance HasGrad prob => HasGrad (AsVectorProblem prob) where
+  grad (AsVectorProblem prob x0) x = toVector prob $ grad prob (updateFromVector prob x0 x)
+  grad' (AsVectorProblem prob x0) x =
+    case grad' prob (updateFromVector prob x0 x) of
+      (y, g) -> (y, toVector prob g)
+  grad'M (AsVectorProblem prob x0) x ret = grad'M prob (updateFromVector prob x0 x) ret
+
+instance HasHessian prob => HasHessian (AsVectorProblem prob) where
+  hessian (AsVectorProblem prob x0) x = hessian prob (updateFromVector prob x0 x)
+  hessianProduct (AsVectorProblem prob x0) x v = toVector prob $ hessianProduct prob (updateFromVector prob x0 x) (updateFromVector prob x0 v)
 
 -- ------------------------------------------------------------------------

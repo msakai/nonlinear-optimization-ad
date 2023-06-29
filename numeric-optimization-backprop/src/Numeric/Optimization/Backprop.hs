@@ -4,6 +4,7 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 -----------------------------------------------------------------------------
 -- |
@@ -21,118 +22,84 @@
 -----------------------------------------------------------------------------
 module Numeric.Optimization.Backprop
   (
-  -- * Main function
-    minimize
-
   -- * Problem specification
-  , Constraint (..)
-
-  -- * Algorithm selection
-  , Method (..)
-  , isSupportedMethod
-  , Params (..)
-
-  -- * Result
-  , Result (..)
-  , Statistics (..)
-  , OptimizationException (..)
+    UsingBackprop (..)
 
   -- * Utilities and Re-exports
-  , Default (..)
   , ToVector
   , module Numeric.Backprop
   ) where
 
 
-import Data.Default.Class
-import Data.Functor.Contravariant
-import qualified Data.Vector as V
-import qualified Data.Vector.Generic as VG
-import qualified Data.Vector.Storable as VS
 import Numeric.Backprop
-import qualified Numeric.Optimization as Opt
-import Numeric.Optimization hiding (minimize, IsProblem (..))
-import Numeric.Optimization.Backprop.ToVector
+import Numeric.Optimization
+import Numeric.Optimization.Backprop.ToVector (ToVector)
+import qualified Numeric.Optimization.Backprop.ToVector as ToVector
 
 
-data Problem a
-  = Problem
-      (forall s. Reifies s W => BVar s a -> BVar s Double)
-      (Maybe (V.Vector (Double, Double)))
-      [Constraint]
-      a
-
-
-instance (ToVector a) => Opt.IsProblem (Problem a) where
-  func (Problem f _bounds _constraints x0) x = evalBP f (updateFromVector x0 x)
-
-  bounds (Problem _f bounds _constraints _template) = bounds
-
-  constraints (Problem _f _bounds constraints _template) = constraints
-
-
-instance (Backprop a, ToVector a) => Opt.HasGrad (Problem a) where
-  grad (Problem f _bounds _constraints x0) x = toVector $ gradBP f (updateFromVector x0 x)
-
-  grad'M (Problem f _bounds _constraints x0) x gvec = do
-    case backprop f (updateFromVector x0 x) of
-      (y, g) -> do
-        writeToMVector g gvec
-        return y
-
-
-instance (Backprop a, ToVector a) => Opt.Optionally (Opt.HasGrad (Problem a)) where
-  optionalDict = hasOptionalDict
-
-
-instance Opt.Optionally (Opt.HasHessian (Problem a)) where
-  optionalDict = Nothing
-
-
--- | Minimization of scalar function of one or more variables.
---
--- This is a wrapper of 'Opt.minimize' and use "Numeric.Backprop" to compute gradient.
+-- | Type for defining function and its gradient using automatic differentiation
+-- provided by "Numeric.Backprop".
 --
 -- Example:
 --
 -- > {-# LANGUAGE FlexibleContexts #-}
+-- > import Numeric.Optimization
 -- > import Numeric.Optimization.Backprop
 -- > import Lens.Micro
--- > 
+-- >
 -- > main :: IO ()
 -- > main = do
--- >   result <- minimize LBFGS def rosenbrock Nothing [] (-3,-4)
+-- >   result <- minimize LBFGS def (UsingBackprop rosenbrock) (-3,-4)
 -- >   print (resultSuccess result)  -- True
 -- >   print (resultSolution result)  -- [0.999999999009131,0.9999999981094296]
 -- >   print (resultValue result)  -- 1.8129771632403013e-18
--- > 
+-- >
 -- > -- https://en.wikipedia.org/wiki/Rosenbrock_function
 -- > rosenbrock :: Reifies s W => BVar s (Double, Double) -> BVar s Double
 -- > rosenbrock t = sq (1 - x) + 100 * sq (y - sq x)
 -- >   where
 -- >     x = t ^^. _1
 -- >     y = t ^^. _2
--- > 
+-- >
 -- > sq :: Floating a => a -> a
 -- > sq x = x ** 2
-minimize
-  :: forall a. (Backprop a, ToVector a)
-  => Method  -- ^ Numerical optimization algorithm to use
-  -> Params a  -- ^ Parameters for optimization algorithms. Use 'def' as a default.
-  -> (forall s. Reifies s W => BVar s a -> BVar s Double)  -- ^ Function to be minimized.
-  -> Maybe [(Double, Double)]  -- ^ Bounds
-  -> [Constraint]  -- ^ Constraints
-  -> a -- ^ Initial value
-  -> IO (Result a)
-minimize method params f bounds constraints x0 = do
-  let bounds' :: Maybe (V.Vector (Double, Double))
-      bounds' = fmap VG.fromList bounds
+--
+-- @since 0.2.0.0
+data UsingBackprop a
+  = UsingBackprop (forall s. Reifies s W => BVar s a -> BVar s Double)
 
-      prob :: Problem a
-      prob = Problem f bounds' constraints x0
 
-      params' :: Params (VS.Vector Double)
-      params' = contramap (updateFromVector x0) params
+instance (ToVector a) => IsProblem (UsingBackprop a) where
+  type Domain (UsingBackprop a) = a
 
-  result <- Opt.minimize method params' prob (toVector x0)
-  return $ fmap (updateFromVector x0) result
+  dim _ = ToVector.dim
+
+  toVector _ = ToVector.toVector
+
+  writeToMVector _ = ToVector.writeToMVector
+
+  updateFromVector _ = ToVector.updateFromVector
+
+  func (UsingBackprop f) x = evalBP f x
+
+  bounds (UsingBackprop _f) = Nothing
+
+  constraints (UsingBackprop _f) = []
+
+
+instance (Backprop a, ToVector a) => HasGrad (UsingBackprop a) where
+  grad (UsingBackprop f) x = gradBP f x
+
+  grad'M (UsingBackprop f) x gvec = do
+    case backprop f x of
+      (y, g) -> do
+        ToVector.writeToMVector g gvec
+        return y
+
+
+instance (Backprop a, ToVector a) => Optionally (HasGrad (UsingBackprop a)) where
+  optionalDict = hasOptionalDict
+
+
+instance Optionally (HasHessian (UsingBackprop a)) where
+  optionalDict = Nothing

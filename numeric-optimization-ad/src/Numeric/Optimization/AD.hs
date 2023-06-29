@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numeric.Optimization.AD
@@ -18,26 +19,11 @@
 -----------------------------------------------------------------------------
 module Numeric.Optimization.AD
   (
-  -- * Main function
-    minimize
-  , minimizeReverse
-  , minimizeSparse
-
   -- * Problem specification
-  , Constraint (..)
-
-  -- * Algorithm selection
-  , Method (..)
-  , isSupportedMethod
-  , Params (..)
-
-  -- * Result
-  , Result (..)
-  , Statistics (..)
-  , OptimizationException (..)
+    UsingReverse (..)
+  , UsingSparse (..)
 
   -- * Utilities and Re-exports
-  , Default (..)
   , AD
   , auto
   , Reverse
@@ -48,12 +34,11 @@ module Numeric.Optimization.AD
 
 
 import Control.Monad.Primitive
-import Data.Default.Class
+import Control.Monad.ST
 import Data.Foldable (foldlM, toList)
-import Data.Functor.Contravariant
 import Data.Reflection (Reifies)
+import Data.STRef
 import Data.Traversable
-import qualified Data.Vector as V
 import qualified Data.Vector.Generic as VG
 import qualified Data.Vector.Generic.Mutable as VGM
 import Numeric.AD (AD, auto)
@@ -63,146 +48,88 @@ import qualified Numeric.AD.Mode.Reverse as Reverse
 import Numeric.AD.Mode.Sparse (Sparse)
 import qualified Numeric.AD.Mode.Sparse as Sparse
 import qualified Numeric.LinearAlgebra as LA
-import qualified Numeric.Optimization as Opt
-import Numeric.Optimization hiding (minimize, IsProblem (..))
+import Numeric.Optimization
 
 -- ------------------------------------------------------------------------
 
-data ProblemReverse f
-  = ProblemReverse
-      (forall s. Reifies s Tape => f (Reverse s Double) -> Reverse s Double)
-      (Maybe (V.Vector (Double, Double)))
-      [Constraint]
-      Int
-      (f Int)
-
-instance Traversable f => Opt.IsProblem (ProblemReverse f) where
-  func (ProblemReverse f _bounds _constraints _size template) x =
-    fst $ Reverse.grad' f (fromVector template x)
-
-  bounds (ProblemReverse _f bounds _constraints _size _template) = bounds
-
-  constraints (ProblemReverse _f _bounds constraints _size _template) = constraints
-
-instance Traversable f => Opt.HasGrad (ProblemReverse f) where
-  grad (ProblemReverse func _bounds _constraints size template) =
-    toVector size . Reverse.grad func . fromVector template
-
-  grad'M (ProblemReverse f _bounds _constraints _size template) x gvec = do
-    case Reverse.grad' f (fromVector template x) of
-      (y, g) -> do
-        writeToMVector g gvec
-        return y
-
-instance Traversable f => Opt.Optionally (Opt.HasGrad (ProblemReverse f)) where
-  optionalDict = hasOptionalDict
-
-instance Opt.Optionally (Opt.HasHessian (ProblemReverse f)) where
-  optionalDict = Nothing
-
--- | Minimization of scalar function of one or more variables.
---
--- This is a wrapper of 'Opt.minimize' and use "Numeric.AD.Mode.Reverse" to compute gradient.
---
--- It cannot be used with methods that requires hessian (e.g. 'Newton').
+-- | Type for defining function and its gradient using automatic differentiation
+-- provided by "Numeric.AD.Mode.Reverse".
 --
 -- Example:
 --
 -- > {-# LANGUAGE FlexibleContexts #-}
--- > import Numeric.Optimization.AD
--- > 
--- > main :: IO ()
--- > main = do
--- >   result <- minimize LBFGS def rosenbrock Nothing [] [-3,-4]
--- >   print (resultSuccess result)  -- True
--- >   print (resultSolution result)  -- [0.999999999009131,0.9999999981094296]
--- >   print (resultValue result)  -- 1.8129771632403013e-18
--- > 
--- > -- https://en.wikipedia.org/wiki/Rosenbrock_function
--- > rosenbrock :: Floating a => [a] -> a
--- > -- rosenbrock :: Reifies s Tape => [Reverse s Double] -> Reverse s Double
--- > rosenbrock [x,y] = sq (1 - x) + 100 * sq (y - sq x)
--- > 
--- > sq :: Floating a => a -> a
--- > sq x = x ** 2
-minimizeReverse
-  :: forall f. Traversable f
-  => Method  -- ^ Numerical optimization algorithm to use
-  -> Params (f Double)  -- ^ Parameters for optimization algorithms. Use 'def' as a default.
-  -> (forall s. Reifies s Tape => f (Reverse s Double) -> Reverse s Double)  -- ^ Function to be minimized.
-  -> Maybe (f (Double, Double))  -- ^ Bounds
-  -> [Constraint]  -- ^ Constraints
-  -> f Double -- ^ Initial value
-  -> IO (Result (f Double))
-minimizeReverse method params f bounds constraints x0 = do
-  let size :: Int
-      template :: f Int
-      (size, template) = mapAccumL (\i _ -> i `seq` (i+1, i)) 0 x0
-
-      bounds' :: Maybe (V.Vector (Double, Double))
-      bounds' = fmap (toVector size) bounds
-
-      prob = ProblemReverse f bounds' constraints size template
-      params' = contramap (fromVector template) params
-
-  result <- Opt.minimize method params' prob (toVector size x0)
-  return $ fmap (fromVector template) result
-
--- ------------------------------------------------------------------------
-
-data ProblemSparse f
-  = ProblemSparse
-      (forall s. f (AD s (Sparse Double)) -> AD s (Sparse Double))
-      (Maybe (V.Vector (Double, Double)))
-      [Constraint]
-      Int
-      (f Int)
-
-instance Traversable f => Opt.IsProblem (ProblemSparse f) where
-  func (ProblemSparse f _bounds _constraints _size template) x =
-    fst $ Sparse.grad' f (fromVector template x)
-
-  bounds (ProblemSparse _f bounds _constraints _size _template) = bounds
-
-  constraints (ProblemSparse _f _bounds constraints _size _template) = constraints
-
-instance Traversable f => Opt.HasGrad (ProblemSparse f) where
-  grad (ProblemSparse func _bounds _constraints size template) =
-    toVector size . Sparse.grad func . fromVector template
-
-  grad'M (ProblemSparse f _bounds _constraints _size template) x gvec = do
-    case Sparse.grad' f (fromVector template x) of
-      (y, g) -> do
-        writeToMVector g gvec
-        return y
-
-instance Traversable f => Opt.HasHessian (ProblemSparse f) where
-  hessian (ProblemSparse func _bounds _constraints size template) =
-    toMatrix size . Sparse.hessian func . fromVector template
-    where
-      toMatrix n xss = (n LA.>< n) $ concat $ map toList $ toList xss
-
-instance Traversable f => Opt.Optionally (Opt.HasGrad (ProblemSparse f)) where
-  optionalDict = hasOptionalDict
-
-instance Traversable f => Opt.Optionally (Opt.HasHessian (ProblemSparse f)) where
-  optionalDict = hasOptionalDict
-
--- | Minimization of scalar function of one or more variables.
---
--- This is a wrapper of 'Opt.minimize' and use "Numeric.AD.Mode.Sparse" to compute gradient
--- and hessian.
---
--- Unlike 'minimizeReverse', it can be used with methods that requires hessian (e.g. 'Newton').
---
--- Example:
---
--- > {-# LANGUAGE FlexibleContexts #-}
+-- > import Numeric.Optimization
 -- > import Numeric.Optimization.AD
 -- >
 -- > main :: IO ()
 -- > main = do
--- >   (x, result, stat) <- minimizeSparse Newton def rosenbrock Nothing [] [-3,-4]
+-- >   result <- minimize LBFGS def (UsingReverse rosenbrock) [-3,-4]
+-- >   print (resultSuccess result)  -- True
+-- >   print (resultSolution result)  -- [0.999999999009131,0.9999999981094296]
+-- >   print (resultValue result)  -- 1.8129771632403013e-18
+-- >
+-- > -- https://en.wikipedia.org/wiki/Rosenbrock_function
+-- > rosenbrock :: Floating a => [a] -> a
+-- > -- rosenbrock :: Reifies s Tape => [Reverse s Double] -> Reverse s Double
+-- > rosenbrock [x,y] = sq (1 - x) + 100 * sq (y - sq x)
+-- >
+-- > sq :: Floating a => a -> a
+-- > sq x = x ** 2
+--
+-- @since 0.2.0.0
+data UsingReverse f
+  = UsingReverse (forall s. Reifies s Tape => f (Reverse s Double) -> Reverse s Double)
+
+instance Traversable f => IsProblem (UsingReverse f) where
+  type Domain (UsingReverse f) = f Double
+
+  dim _ = length
+
+  toVector _ = VG.fromList . toList
+
+  writeToMVector _ = writeToMVector'
+
+  updateFromVector _ = updateFromVector'
+
+  func (UsingReverse f) x = fst $ Reverse.grad' f x
+
+  bounds (UsingReverse _f) = Nothing
+
+  constraints (UsingReverse _f) = []
+
+instance Traversable f => HasGrad (UsingReverse f) where
+  grad (UsingReverse f) x = Reverse.grad f x
+
+  grad' (UsingReverse f) x = Reverse.grad' f x
+
+  grad'M (UsingReverse f) x gvec =
+    case Reverse.grad' f x of
+      (y, g) -> do
+        writeToMVector' g gvec
+        return y
+
+instance Traversable f => Optionally (HasGrad (UsingReverse f)) where
+  optionalDict = hasOptionalDict
+
+instance Optionally (HasHessian (UsingReverse f)) where
+  optionalDict = Nothing
+
+-- ------------------------------------------------------------------------
+
+-- | Type for defining function and its gradient and hessian using automatic
+-- differentiation provided by "Numeric.AD.Mode.Sparse".
+--
+-- Unlike 'UsingReverse', it can be used with methods that requires hessian (e.g. 'Newton').
+--
+-- Example:
+--
+-- > {-# LANGUAGE FlexibleContexts #-}
+-- > import Numeric.Optimization
+-- > import Numeric.Optimization.AD
+-- >
+-- > main :: IO ()
+-- > main = do
+-- >   (x, result, stat) <- minimize Newton def (UsingSparse rosenbrock) [-3,-4]
 -- >   print (resultSuccess result)  -- True
 -- >   print (resultSolution result)  -- [0.9999999999999999,0.9999999999999998]
 -- >   print (resultValue result)  -- 1.232595164407831e-32
@@ -214,57 +141,63 @@ instance Traversable f => Opt.Optionally (Opt.HasHessian (ProblemSparse f)) wher
 -- >
 -- > sq :: Floating a => a -> a
 -- > sq x = x ** 2
-minimizeSparse
-  :: forall f. Traversable f
-  => Method  -- ^ Numerical optimization algorithm to use
-  -> Params (f Double)  -- ^ Parameters for optimization algorithms. Use 'def' as a default.
-  -> (forall s. f (AD s (Sparse Double)) -> AD s (Sparse Double))  -- ^ Function to be minimized.
-  -> Maybe (f (Double, Double))  -- ^ Bounds
-  -> [Constraint]  -- ^ Constraints
-  -> f Double -- ^ Initial value
-  -> IO (Result (f Double))
-minimizeSparse method params f bounds constraints x0 = do
-  let size :: Int
-      template :: f Int
-      (size, template) = mapAccumL (\i _ -> i `seq` (i+1, i)) 0 x0
+--
+-- @since 0.2.0.0
+data UsingSparse f
+  = UsingSparse (forall s. f (AD s (Sparse Double)) -> AD s (Sparse Double))
 
-      bounds' :: Maybe (V.Vector (Double, Double))
-      bounds' = fmap (toVector size) bounds
+instance Traversable f => IsProblem (UsingSparse f) where
+  type Domain (UsingSparse f) = f Double
 
-      prob = ProblemSparse f bounds' constraints size template
-      params' = contramap (fromVector template) params
+  dim _ = length
 
-  result <- Opt.minimize method params' prob (toVector size x0)
-  return $ fmap (fromVector template) result
+  toVector _ = VG.fromList . toList
+
+  writeToMVector _ = writeToMVector'
+
+  updateFromVector _ = updateFromVector'
+
+  func (UsingSparse f) x = fst $ Sparse.grad' f x
+
+  bounds (UsingSparse _f) = Nothing
+
+  constraints (UsingSparse _f) = []
+
+instance Traversable f => HasGrad (UsingSparse f) where
+  grad (UsingSparse f) x = Sparse.grad f x
+
+  grad' (UsingSparse f) x = Sparse.grad' f x
+
+  grad'M (UsingSparse f) x gvec =
+    case Sparse.grad' f x of
+      (y, g) -> do
+        writeToMVector' g gvec
+        return y
+
+instance Traversable f => HasHessian (UsingSparse f) where
+  hessian (UsingSparse f) x = toMatrix (length x) $ Sparse.hessian f x
+    where
+      toMatrix n xss = (n LA.>< n) $ concat $ map toList $ toList xss
+
+instance Traversable f => Optionally (HasGrad (UsingSparse f)) where
+  optionalDict = hasOptionalDict
+
+instance Traversable f => Optionally (HasHessian (UsingSparse f)) where
+  optionalDict = hasOptionalDict
 
 -- ------------------------------------------------------------------------
 
--- | Synonym of 'minimizeReverse'
-minimize
-  :: forall f. Traversable f
-  => Method  -- ^ Numerical optimization algorithm to use
-  -> Params (f Double)  -- ^ Parameters for optimization algorithms. Use 'def' as a default.
-  -> (forall s. Reifies s Tape => f (Reverse s Double) -> Reverse s Double)  -- ^ Function to be minimized.
-  -> Maybe (f (Double, Double))  -- ^ Bounds
-  -> [Constraint]  -- ^ Constraints
-  -> f Double -- ^ Initial value
-  -> IO (Result (f Double))
-minimize = minimizeReverse
-
--- ------------------------------------------------------------------------
-
-fromVector :: (Functor f, VG.Vector v a) => f Int -> v a -> f a
-fromVector template x = fmap (x VG.!) template
-
-toVector :: (Traversable f, VG.Vector v a) => Int -> f a -> v a
-toVector size x = VG.create $ do
-  vec <- VGM.new size
-  writeToMVector x vec
-  return vec
-
-writeToMVector :: (PrimMonad m, VGM.MVector mv a, Traversable f) => f a -> mv (PrimState m) a -> m ()
-writeToMVector x vec = do
+writeToMVector' :: (PrimMonad m, VGM.MVector mv a, Traversable f) => f a -> mv (PrimState m) a -> m ()
+writeToMVector' x vec = do
   _ <- foldlM (\i v -> VGM.write vec i v >> return (i+1)) 0 x
   return ()
+
+updateFromVector' :: (VG.Vector v a, Traversable f) => f a -> v a -> f a
+updateFromVector' x0 vec = runST $ do
+  counter <- newSTRef 0
+  forM x0 $ \_ -> do
+    i <- readSTRef counter
+    writeSTRef counter $! i+1
+    return $ vec VG.! i
 
 -- ------------------------------------------------------------------------
