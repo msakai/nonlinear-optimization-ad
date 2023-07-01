@@ -31,7 +31,7 @@ import qualified Data.Vector.Generic as VG
 import qualified Data.Vector.Storable as VS
 import qualified Data.Vector.Unboxed as VU
 import GHC.Stack (HasCallStack)
-import Numeric.LinearAlgebra as LA
+import qualified Numeric.LinearAlgebra as LA
 import Test.HUnit
 import Text.Printf
 
@@ -125,10 +125,13 @@ instance (AllClose r v, VU.Unbox v) => AllClose r (VU.Vector v) where
     | VG.length xs == VG.length ys = sconcat (allCloseRawUnit :| [allCloseRaw tol a b | (a,b) <- zip (VG.toList xs) (VG.toList ys)])
     | otherwise = Ap Nothing
 
-instance (AllClose r v, Num v, LA.Container Vector v) => AllClose r (LA.Matrix v) where
+instance (AllClose r v, Num v, LA.Container LA.Vector v) => AllClose r (LA.Matrix v) where
   allCloseRaw tol xs ys
-    | LA.size xs == LA.size ys = allCloseRaw tol (flatten xs) (flatten ys)
+    | LA.size xs == LA.size ys = allCloseRaw tol (LA.flatten xs) (LA.flatten ys)
     | otherwise = Ap Nothing
+
+instance (AllClose r v1, AllClose r v2) => AllClose r (v1, v2)  where
+  allCloseRaw tol (x1,y1) (x2,y2) = allCloseRaw tol x1 x2 <> allCloseRaw tol y1 y2
 
 -- ------------------------------------------------------------------------
 

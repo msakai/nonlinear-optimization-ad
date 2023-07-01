@@ -6,7 +6,6 @@ import Test.Hspec
 import Control.Exception
 import Control.Monad
 import Data.IORef
-import Data.Vector.Storable (Vector)
 import Numeric.LinearAlgebra (Matrix, (><))
 import Numeric.Optimization
 import IsClose
@@ -26,9 +25,9 @@ main = hspec $ do
       context "when given rosenbrock function" $
         it "returns the global optimum" $ do
           let prob = WithGrad rosenbrock rosenbrock'
-          result <- minimize CGDescent def prob [-3,-4]
+          result <- minimize CGDescent def prob (-3,-4)
           resultSuccess result `shouldBe` True
-          assertAllClose (def :: Tol Double) (resultSolution result) [1,1]
+          assertAllClose (def :: Tol Double) (resultSolution result) (1,1)
           assertAllClose (def :: Tol Double) (resultValue result) (func prob (resultSolution result))
           case resultGrad result of
             Nothing -> return ()
@@ -44,18 +43,18 @@ main = hspec $ do
       context "when given paramsMaxIters" $
         it "stops iterations early" $ do
           let prob = WithGrad rosenbrock rosenbrock'
-          result <- minimize CGDescent def{ paramsMaxIters = Just 2 } prob [1000, 1000]
+          result <- minimize CGDescent def{ paramsMaxIters = Just 2 } prob (1000, 1000)
           -- XXX: It seems that CG_DESCENT-C-3.0 report a number number of iterations that is 1 greater than the actual value
           totalIters (resultStatistics result) `shouldSatisfy` (\i -> 0 < i && i <= 2+1)
           resultSuccess result `shouldBe` False
 
       context "when given a function without gradient" $ do
         it "should throw GradUnavailable" $ do
-          minimize CGDescent def rosenbrock [-3,-4] `shouldThrow` (GradUnavailable ==)
+          minimize CGDescent def rosenbrock (-3,-4) `shouldThrow` (GradUnavailable ==)
 
       context "when given a problem with bounds" $ do
         it "should throw UnsupportedProblem" $ do
-          minimize CGDescent def (rosenbrock `WithGrad` rosenbrock' `WithBounds` [(-4,2), (-5,2)]) [-3,-4]
+          minimize CGDescent def (rosenbrock `WithGrad` rosenbrock' `WithBounds` [(-4,2), (-5,2)]) (-3,-4)
             `shouldThrow` (\case { UnsupportedProblem _ -> True; _ -> False })
 
   describe "minimize LBFGS" $ do
@@ -70,9 +69,9 @@ main = hspec $ do
       context "when given rosenbrock function" $
         it "returns the global optimum" $ do
           let prob = WithGrad rosenbrock rosenbrock'
-          result <- minimize LBFGS def prob [-3,-4]
+          result <- minimize LBFGS def prob (-3,-4)
           resultSuccess result `shouldBe` True
-          assertAllClose (def :: Tol Double) (resultSolution result) [1,1]
+          assertAllClose (def :: Tol Double) (resultSolution result) (1,1)
           assertAllClose (def :: Tol Double) (resultValue result) (func prob (resultSolution result))
           case resultGrad result of
             Nothing -> return ()
@@ -88,9 +87,9 @@ main = hspec $ do
       context "when given rosenbrock function with past" $
         it "returns the global optimum" $ do
           let prob = WithGrad rosenbrock rosenbrock'
-          result <- minimize LBFGS def{ paramsPast = Just 1 } prob [-3,-4]
+          result <- minimize LBFGS def{ paramsPast = Just 1 } prob (-3,-4)
           resultSuccess result `shouldBe` True
-          assertAllClose (def :: Tol Double) (resultSolution result) [1,1]
+          assertAllClose (def :: Tol Double) (resultSolution result) (1,1)
           assertAllClose (def :: Tol Double) (resultValue result) (func prob (resultSolution result))
 
       context "when given callback" $
@@ -102,17 +101,17 @@ main = hspec $ do
                 cnt <- readIORef counter
                 writeIORef counter (cnt + 1)
                 return (cnt >= 2)
-          result <- minimize LBFGS def{ paramsCallback = Just callback } prob [1000, 1000]
+          result <- minimize LBFGS def{ paramsCallback = Just callback } prob (1000, 1000)
           totalIters (resultStatistics result) `shouldBe` 3  -- ???
           resultSuccess result `shouldBe` False
 
       context "when given a function without gradient" $ do
         it "should throw GradUnavailable" $ do
-          minimize LBFGS def rosenbrock [-3,-4] `shouldThrow` (GradUnavailable ==)
+          minimize LBFGS def rosenbrock (-3,-4) `shouldThrow` (GradUnavailable ==)
 
       context "when given a problem with bounds" $ do
         it "should throw UnsupportedProblem" $ do
-          minimize LBFGS def (rosenbrock `WithGrad` rosenbrock' `WithBounds` [(-4,2), (-5,2)]) [-3,-4]
+          minimize LBFGS def (rosenbrock `WithGrad` rosenbrock' `WithBounds` [(-4,2), (-5,2)]) (-3,-4)
             `shouldThrow` (\case { UnsupportedProblem _ -> True; _ -> False })
 
   describe "minimize LBFGSB" $ do
@@ -127,9 +126,9 @@ main = hspec $ do
       context "when given rosenbrock function" $
         it "returns the global optimum" $ do
           let prob = rosenbrock `WithGrad` rosenbrock'
-          result <- minimize LBFGSB def prob [-3,-4]
+          result <- minimize LBFGSB def prob (-3,-4)
           resultSuccess result `shouldBe` True
-          assertAllClose (def :: Tol Double) (resultSolution result) [1,1]
+          assertAllClose (def :: Tol Double) (resultSolution result) (1,1)
           assertAllClose (def :: Tol Double) (resultValue result) (func prob (resultSolution result))
           case resultGrad result of
             Nothing -> return ()
@@ -146,34 +145,34 @@ main = hspec $ do
         it "returns a solution not close enough to global optimum" $ do
           let prob = rosenbrock `WithGrad` rosenbrock'
               eps = 2.220446049250313e-16
-          result <- minimize LBFGSB def{ paramsFTol = Just (1e12 * eps) } prob [-3,-4]
+          result <- minimize LBFGSB def{ paramsFTol = Just (1e12 * eps) } prob (-3,-4)
           resultSuccess result `shouldBe` True
-          allClose (def :: Tol Double) (resultSolution result) [1,1] `shouldBe` False
+          allClose (def :: Tol Double) (resultSolution result) (1,1) `shouldBe` False
 
       context "when given rosenbrock function with bounds" $
         it "returns the global optimum" $ do
           let prob = rosenbrock `WithGrad` rosenbrock' `WithBounds` [(-4,2), (-5,2)]
-          result <- minimize LBFGSB def prob [-3,-4]
+          result <- minimize LBFGSB def prob (-3,-4)
           resultSuccess result `shouldBe` True
-          assertAllClose (def :: Tol Double) (resultSolution result) [1,1]
+          assertAllClose (def :: Tol Double) (resultSolution result) (1,1)
 
       context "when given rosenbrock function with bounds (-infinity, +infinity)" $
         it "returns the global optimum" $ do
           let prob = rosenbrock `WithGrad` rosenbrock' `WithBounds` boundsUnconstrained 2
-          result <- minimize LBFGSB def prob [-3,-4]
+          result <- minimize LBFGSB def prob (-3,-4)
           resultSuccess result `shouldBe` True
-          assertAllClose (def :: Tol Double) (resultSolution result) [1,1]
+          assertAllClose (def :: Tol Double) (resultSolution result) (1,1)
 
       context "when given paramsMaxIters" $
         it "stops iterations early" $ do
           let prob = WithGrad rosenbrock rosenbrock'
-          result <- minimize LBFGSB def{ paramsMaxIters = Just 2 } prob [1000, 1000]
+          result <- minimize LBFGSB def{ paramsMaxIters = Just 2 } prob (1000, 1000)
           totalIters (resultStatistics result) `shouldSatisfy` (\i -> 0 < i && i <= 2)
           resultSuccess result `shouldBe` False
 
       context "when given a function without gradient" $ do
         it "should throw GradUnavailable" $ do
-          minimize LBFGSB def rosenbrock [-3,-4] `shouldThrow` (GradUnavailable ==)
+          minimize LBFGSB def rosenbrock (-3,-4) `shouldThrow` (GradUnavailable ==)
 
   describe "minimize Newton" $ do
     when (isSupportedMethod Newton) $ do
@@ -187,10 +186,10 @@ main = hspec $ do
       context "when given rosenbrock function" $
         it "returns the global optimum" $ do
           let prob = rosenbrock `WithGrad` rosenbrock' `WithHessian` rosenbrock''
-          result <- minimize Newton def prob [-3,-4]
+          result <- minimize Newton def prob (-3,-4)
           resultSuccess result `shouldBe` True
           totalIters (resultStatistics result) `shouldSatisfy` (> 0)
-          assertAllClose (def :: Tol Double) (resultSolution result) [1,1]
+          assertAllClose (def :: Tol Double) (resultSolution result) (1,1)
           assertAllClose (def :: Tol Double) (resultValue result) (func prob (resultSolution result))
           case resultGrad result of
             Nothing -> return ()
@@ -207,7 +206,7 @@ main = hspec $ do
       context "when given paramsMaxIters" $
         it "stops iterations early" $ do
           let prob = rosenbrock `WithGrad` rosenbrock' `WithHessian` rosenbrock''
-          result <- minimize Newton def{ paramsMaxIters = Just 2 } prob [1000, 1000]
+          result <- minimize Newton def{ paramsMaxIters = Just 2 } prob (1000, 1000)
           totalIters (resultStatistics result) `shouldSatisfy` (\i -> 0 < i && i <= 2)
           resultSuccess result `shouldBe` False
           assertAllClose (def :: Tol Double) (resultValue result) (func prob (resultSolution result))
@@ -227,7 +226,7 @@ main = hspec $ do
                 cnt <- readIORef counter
                 writeIORef counter (cnt + 1)
                 return (cnt >= 2)
-          result <- minimize Newton def{ paramsCallback = Just callback } prob [1000, 1000]
+          result <- minimize Newton def{ paramsCallback = Just callback } prob (1000, 1000)
           resultSuccess result `shouldBe` False
           let stat = resultStatistics result
           totalIters stat `shouldBe` 2
@@ -237,29 +236,29 @@ main = hspec $ do
 
       context "when given a function without gradient" $ do
         it "should throw GradUnavailable" $ do
-          minimize Newton def (rosenbrock `WithHessian` rosenbrock'') [-3,-4] `shouldThrow` (GradUnavailable ==)
+          minimize Newton def (rosenbrock `WithHessian` rosenbrock'') (-3,-4) `shouldThrow` (GradUnavailable ==)
 
       context "when given a function without Hessian" $ do
         it "should throw HessianUnavailable" $ do
-          minimize Newton def (rosenbrock `WithGrad` rosenbrock') [-3,-4] `shouldThrow` (HessianUnavailable ==)
+          minimize Newton def (rosenbrock `WithGrad` rosenbrock') (-3,-4) `shouldThrow` (HessianUnavailable ==)
 
       context "when given a problem with bounds" $ do
         it "should throw UnsupportedProblem" $ do
-          minimize Newton def (rosenbrock `WithGrad` rosenbrock' `WithHessian` rosenbrock'' `WithBounds` [(-4,2), (-5,2)]) [-3,-4]
+          minimize Newton def (rosenbrock `WithGrad` rosenbrock' `WithHessian` rosenbrock'' `WithBounds` [(-4,2), (-5,2)]) (-3,-4)
             `shouldThrow` (\case { UnsupportedProblem _ -> True; _ -> False })
 
 -- https://en.wikipedia.org/wiki/Rosenbrock_function
-rosenbrock :: Vector Double -> Double
-rosenbrock [x,y] = sq (1 - x) + 100 * sq (y - sq x)
+rosenbrock :: (Double, Double) -> Double
+rosenbrock (x,y) = sq (1 - x) + 100 * sq (y - sq x)
 
-rosenbrock' :: Vector Double -> Vector Double
-rosenbrock' [x,y] =
-  [ 2 * (1 - x) * (-1) + 100 * 2 * (y - sq x) * (-2) * x
+rosenbrock' :: (Double, Double) -> (Double, Double)
+rosenbrock' (x,y) =
+  ( 2 * (1 - x) * (-1) + 100 * 2 * (y - sq x) * (-2) * x
   , 100 * 2 * (y - sq x)
-  ]
+  )
 
-rosenbrock'' :: Vector Double -> Matrix Double
-rosenbrock'' [x,y] =
+rosenbrock'' :: (Double, Double) -> Matrix Double
+rosenbrock'' (x,y) =
   (2><2)
   [ 2 + 100 * 2 * (-2) * ((y - sq x) + (x * (-2) * x)), 100 * 2 * (-2) * x
   , 100 * 2 * (-2) * x, 100 * 2
