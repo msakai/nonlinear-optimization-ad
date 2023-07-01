@@ -89,6 +89,8 @@ import qualified Numeric.LBFGS.Raw as LBFGS (unCLBFGSResult, lbfgserrCanceled)
 #ifdef WITH_CG_DESCENT
 import qualified Numeric.Optimization.Algorithms.HagerZhang05 as CG
 #endif
+import Numeric.Optimization.Utils.ToVector (ToVector)
+import qualified Numeric.Optimization.Utils.ToVector as ToVector
 #ifdef WITH_LBFGSB
 import qualified Numeric.LBFGSB as LBFGSB
 import qualified Numeric.LBFGSB.Result as LBFGSB
@@ -889,19 +891,19 @@ minimize_Newton params prob x0 = do
 
 -- ------------------------------------------------------------------------
 
-instance IsProblem (Vector Double -> Double) where
-  type Domain (Vector Double -> Double) = Vector Double
-  dim _ = VG.length
-  updateFromVector _ _ = id
-  toVector _ = id
-  -- default implementation of 'writeToMVector' is what we want
+instance ToVector a => IsProblem (a -> Double) where
+  type Domain (a -> Double) = a
+  dim _ = ToVector.dim
+  updateFromVector _ = ToVector.updateFromVector
+  toVector _ = ToVector.toVector
+  writeToMVector _ = ToVector.writeToMVector
 
   func f = f
 
-instance Optionally (HasGrad (Vector Double -> Double)) where
+instance Optionally (HasGrad (a -> Double)) where
   optionalDict = Nothing
 
-instance Optionally (HasHessian (Vector Double -> Double)) where
+instance Optionally (HasHessian (a -> Double)) where
   optionalDict = Nothing
 
 -- ------------------------------------------------------------------------

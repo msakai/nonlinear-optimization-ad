@@ -13,6 +13,9 @@ and this project adheres to the
   inputs and gradients.
 * Move `numeric-optimization-backprop`'s `Numeric.Optimization.Backprop.ToVector`
   to `numeric-optimization`'s `Numeric.Optimization.Utils.ToVector`.
+* Now we have `instance ToVector a => IsProblem (a -> Double)`, so that
+  `Double -> Double`, `(Double, Double) -> Double`, `[Double] -> Double`, etc.
+  are all instances of `IsProblem`.
 
 ## 0.1.1.0 - 2023-06-21
 

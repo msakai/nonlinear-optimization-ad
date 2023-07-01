@@ -11,7 +11,7 @@
 -- Conversion between a type and 'VS.Vector' 'Double'.
 --
 -----------------------------------------------------------------------------
-module {-# DEPRECATED "Use Numeric.Optimization.Utils.ToVector instead" #-} Numeric.Optimization.Backprop.ToVector
+module Numeric.Optimization.Backprop.ToVector {-# DEPRECATED "Use Numeric.Optimization.Utils.ToVector instead" #-}
   ( module Numeric.Optimization.Utils.ToVector
   ) where
 
