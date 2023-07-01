@@ -325,23 +325,40 @@ instance Exception OptimizationException
 --
 -- Problems are specified by types of 'IsProblem' type class.
 --
--- In the simplest case, @'VS.Vector' Double -> Double@ is a instance
--- of 'IsProblem' class. It is enough if your problem does not have
--- constraints and the selected algorithm does not require further
--- information (e.g. gradients and hessians),
+-- A problem consists of an objective function and constraints.
 --
--- You can equip a problem with other information using wrapper types:
+-- You can use the functions of following type, for example, as
+-- unconstrained problems:
 --
--- * 'WithBounds'
+-- * Double -> Double
 --
--- * 'WithConstraints'
+-- * (Double, Double) -> Doule
 --
--- * 'WithGrad'
+-- * (Double, Double, Double) -> Doule
 --
--- * 'WithHessian'
+-- * …
 --
--- If you need further flexibility or efficient implementation, you can
--- define instance of 'IsProblem' by yourself.
+-- * 'VS.Vector' Double -> Double
+--
+-- Many optimization algorithms in this module ('Method') require
+-- gradient and/or hessian. In this case you can add those information
+-- using wrapper types: 'WithGrad' and 'WithHessian'. For example:
+--
+-- > (\x -> x**2) `'WithGrad' (\x -> 2*x)
+--
+-- If your problem is a constrained problem. You can add constraints
+-- using the wrappers: 'WithBounds' and 'WithConstraints'. For example:
+--
+-- > import Data.Vector (fromList)
+-- >
+-- > (\(x,y) -> x**2 + y**2) `WithBounds` (fromList [(-1,1), (-2,2)])
+--
+-- You can use [numeric-optimization-ad](https://hackage.haskell.org/package/numeric-optimization-ad)
+-- and [numeric-optimization-backprop](https://hackage.haskell.org/package/numeric-optimization-backprop)
+-- to avoid hand-writing functions for computing gradients and hesians.
+--
+-- If you need further flexibility, you can define instance of
+-- 'IsProblem' by yourself.
 
 -- | Optimization problems
 --
