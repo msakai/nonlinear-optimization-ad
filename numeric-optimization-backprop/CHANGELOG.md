@@ -9,6 +9,8 @@ and this project adheres to the
 ## 0.2.0.0 - Unreleased
 
 * Redesign API using newly introduced `Domain` type.
+* Move `numeric-optimization-backprop`'s `Numeric.Optimization.Backprop.ToVector`
+  to `numeric-optimization`'s `Numeric.Optimization.Utils.ToVector`.
 
 ## 0.1.0.1 - 2023-06-03
 

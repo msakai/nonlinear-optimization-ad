@@ -33,8 +33,8 @@ module Numeric.Optimization.Backprop
 
 import Numeric.Backprop
 import Numeric.Optimization
-import Numeric.Optimization.Backprop.ToVector (ToVector)
-import qualified Numeric.Optimization.Backprop.ToVector as ToVector
+import Numeric.Optimization.Utils.ToVector (ToVector)
+import qualified Numeric.Optimization.Utils.ToVector as ToVector
 
 
 -- | Type for defining function and its gradient using automatic differentiation

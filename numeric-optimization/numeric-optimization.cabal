@@ -55,6 +55,7 @@ flag with-lbfgsb
 library
   exposed-modules:
       Numeric.Optimization
+      Numeric.Optimization.Utils.ToVector
   other-modules:
       Paths_numeric_optimization
   hs-source-dirs:
@@ -63,8 +64,11 @@ library
   build-depends:
       base >=4.12 && <5
     , constraints
+    , containers >=0.6.0.1 && <0.7
     , data-default-class >=0.1.2.0 && <0.2
     , hmatrix >=0.20.0.0
+    , mono-traversable >=1.0.15.1 && <1.1
+    , mtl >=2.2.2 && <2.4
     , numeric-limits ==0.1.*
     , primitive >=0.6.4.0
     , vector >=0.12.0.2 && <0.14

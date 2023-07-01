@@ -11,6 +11,8 @@ and this project adheres to the
 * Introduced assosiated type `Domain` to the `IsProblem` type class:
   Now `Domain prob` instead of `Vector Double` is used to represent
   inputs and gradients.
+* Move `numeric-optimization-backprop`'s `Numeric.Optimization.Backprop.ToVector`
+  to `numeric-optimization`'s `Numeric.Optimization.Utils.ToVector`.
 
 ## 0.1.1.0 - 2023-06-21
 
