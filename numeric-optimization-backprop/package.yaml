@@ -54,11 +54,6 @@ library:
   source-dirs: src
   dependencies:
   - backprop >=0.2.6.3 && <0.3
-  - mono-traversable >=1.0.15.1 && <1.1
-  - mtl >=2.2.2 && <2.4
-  - primitive >=0.6.4.0
-  - reflection >=2.1.5
-  - vector >=0.12.0.2 && <0.14
 
 executables:
   rosenbrock-backprop:

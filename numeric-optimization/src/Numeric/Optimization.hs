@@ -89,6 +89,8 @@ import qualified Numeric.LBFGS.Raw as LBFGS (unCLBFGSResult, lbfgserrCanceled)
 #ifdef WITH_CG_DESCENT
 import qualified Numeric.Optimization.Algorithms.HagerZhang05 as CG
 #endif
+import Numeric.Optimization.Utils.ToVector (ToVector)
+import qualified Numeric.Optimization.Utils.ToVector as ToVector
 #ifdef WITH_LBFGSB
 import qualified Numeric.LBFGSB as LBFGSB
 import qualified Numeric.LBFGSB.Result as LBFGSB
@@ -323,23 +325,40 @@ instance Exception OptimizationException
 --
 -- Problems are specified by types of 'IsProblem' type class.
 --
--- In the simplest case, @'VS.Vector' Double -> Double@ is a instance
--- of 'IsProblem' class. It is enough if your problem does not have
--- constraints and the selected algorithm does not require further
--- information (e.g. gradients and hessians),
+-- A problem consists of an objective function and constraints.
 --
--- You can equip a problem with other information using wrapper types:
+-- You can use the functions of following type, for example, as
+-- unconstrained problems:
 --
--- * 'WithBounds'
+-- * Double -> Double
 --
--- * 'WithConstraints'
+-- * (Double, Double) -> Doule
 --
--- * 'WithGrad'
+-- * (Double, Double, Double) -> Doule
 --
--- * 'WithHessian'
+-- * …
 --
--- If you need further flexibility or efficient implementation, you can
--- define instance of 'IsProblem' by yourself.
+-- * 'VS.Vector' Double -> Double
+--
+-- Many optimization algorithms in this module ('Method') require
+-- gradient and/or hessian. In this case you can add those information
+-- using wrapper types: 'WithGrad' and 'WithHessian'. For example:
+--
+-- > (\x -> x**2) `'WithGrad' (\x -> 2*x)
+--
+-- If your problem is a constrained problem. You can add constraints
+-- using the wrappers: 'WithBounds' and 'WithConstraints'. For example:
+--
+-- > import Data.Vector (fromList)
+-- >
+-- > (\(x,y) -> x**2 + y**2) `WithBounds` (fromList [(-1,1), (-2,2)])
+--
+-- You can use [numeric-optimization-ad](https://hackage.haskell.org/package/numeric-optimization-ad)
+-- and [numeric-optimization-backprop](https://hackage.haskell.org/package/numeric-optimization-backprop)
+-- to avoid hand-writing functions for computing gradients and hesians.
+--
+-- If you need further flexibility, you can define instance of
+-- 'IsProblem' by yourself.
 
 -- | Optimization problems
 --
@@ -479,27 +498,24 @@ isUnconstainedBounds = V.all p
 --
 -- Example:
 --
--- > {-# LANGUAGE OverloadedLists #-}
--- >
--- > import Data.Vector.Storable (Vector)
 -- > import Numeric.Optimization
 -- >
 -- > main :: IO ()
 -- > main = do
--- >   (x, result, stat) <- minimize LBFGS def (WithGrad rosenbrock rosenbrock') [-3,-4]
+-- >   result <- minimize LBFGS def (WithGrad rosenbrock rosenbrock') (-3,-4)
 -- >   print (resultSuccess result)  -- True
 -- >   print (resultSolution result)  -- [0.999999999009131,0.9999999981094296]
 -- >   print (resultValue result)  -- 1.8129771632403013e-18
 -- >
 -- > -- https://en.wikipedia.org/wiki/Rosenbrock_function
--- > rosenbrock :: Vector Double -> Double
--- > rosenbrock [x,y] = sq (1 - x) + 100 * sq (y - sq x)
+-- > rosenbrock :: (Double, Double) -> Double
+-- > rosenbrock (x,y) = sq (1 - x) + 100 * sq (y - sq x)
 -- >
--- > rosenbrock' :: Vector Double -> Vector Double
--- > rosenbrock' [x,y] =
--- >   [ 2 * (1 - x) * (-1) + 100 * 2 * (y - sq x) * (-2) * x
+-- > rosenbrock' :: (Double, Double) -> (Double, Double)
+-- > rosenbrock' (x,y) =
+-- >   ( 2 * (1 - x) * (-1) + 100 * 2 * (y - sq x) * (-2) * x
 -- >   , 100 * 2 * (y - sq x)
--- >   ]
+-- >   )
 -- >
 -- > sq :: Floating a => a -> a
 -- > sq x = x ** 2
@@ -889,19 +905,19 @@ minimize_Newton params prob x0 = do
 
 -- ------------------------------------------------------------------------
 
-instance IsProblem (Vector Double -> Double) where
-  type Domain (Vector Double -> Double) = Vector Double
-  dim _ = VG.length
-  updateFromVector _ _ = id
-  toVector _ = id
-  -- default implementation of 'writeToMVector' is what we want
+instance ToVector a => IsProblem (a -> Double) where
+  type Domain (a -> Double) = a
+  dim _ = ToVector.dim
+  updateFromVector _ = ToVector.updateFromVector
+  toVector _ = ToVector.toVector
+  writeToMVector _ = ToVector.writeToMVector
 
   func f = f
 
-instance Optionally (HasGrad (Vector Double -> Double)) where
+instance Optionally (HasGrad (a -> Double)) where
   optionalDict = Nothing
 
-instance Optionally (HasHessian (Vector Double -> Double)) where
+instance Optionally (HasHessian (a -> Double)) where
   optionalDict = Nothing
 
 -- ------------------------------------------------------------------------
