@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 import Test.Hspec
 
 import Control.Exception
@@ -15,6 +16,13 @@ main :: IO ()
 main = hspec $ do
   describe "minimize CGDescent" $ do
     when (isSupportedMethod CGDescent) $ do
+      it "can optimze scalar function" $ do
+        let prob = (\(x :: Double) -> (1/4) * x**4 - x) `WithGrad` (\x -> x**3 - 1) `WithHessian` (\x -> (1 >< 1) [3 * x**2])
+        result <- minimize CGDescent def prob 100
+        resultSuccess result `shouldBe` True
+        assertAllClose (def :: Tol Double) (resultSolution result) 1
+        assertAllClose (def :: Tol Double) (resultValue result) (func prob (resultSolution result))
+
       context "when given rosenbrock function" $
         it "returns the global optimum" $ do
           let prob = WithGrad rosenbrock rosenbrock'
@@ -52,6 +60,13 @@ main = hspec $ do
 
   describe "minimize LBFGS" $ do
     when (isSupportedMethod LBFGS) $ do
+      it "can optimze scalar function" $ do
+        let prob = (\(x :: Double) -> (1/4) * x**4 - x) `WithGrad` (\x -> x**3 - 1) `WithHessian` (\x -> (1 >< 1) [3 * x**2])
+        result <- minimize LBFGS def prob 100
+        resultSuccess result `shouldBe` True
+        assertAllClose (def :: Tol Double) (resultSolution result) 1
+        assertAllClose (def :: Tol Double) (resultValue result) (func prob (resultSolution result))
+
       context "when given rosenbrock function" $
         it "returns the global optimum" $ do
           let prob = WithGrad rosenbrock rosenbrock'
@@ -102,6 +117,13 @@ main = hspec $ do
 
   describe "minimize LBFGSB" $ do
     when (isSupportedMethod LBFGSB) $ do
+      it "can optimze scalar function" $ do
+        let prob = (\(x :: Double) -> (1/4) * x**4 - x) `WithGrad` (\x -> x**3 - 1) `WithHessian` (\x -> (1 >< 1) [3 * x**2])
+        result <- minimize LBFGSB def prob 100
+        resultSuccess result `shouldBe` True
+        assertAllClose (def :: Tol Double) (resultSolution result) 1
+        assertAllClose (def :: Tol Double) (resultValue result) (func prob (resultSolution result))
+
       context "when given rosenbrock function" $
         it "returns the global optimum" $ do
           let prob = rosenbrock `WithGrad` rosenbrock'
@@ -155,6 +177,13 @@ main = hspec $ do
 
   describe "minimize Newton" $ do
     when (isSupportedMethod Newton) $ do
+      it "can optimze scalar function" $ do
+        let prob = (\(x :: Double) -> (1/4) * x**4 - x) `WithGrad` (\x -> x**3 - 1) `WithHessian` (\x -> (1 >< 1) [3 * x**2])
+        result <- minimize Newton def prob 100
+        resultSuccess result `shouldBe` True
+        assertAllClose (def :: Tol Double) (resultSolution result) 1
+        assertAllClose (def :: Tol Double) (resultValue result) (func prob (resultSolution result))
+
       context "when given rosenbrock function" $
         it "returns the global optimum" $ do
           let prob = rosenbrock `WithGrad` rosenbrock' `WithHessian` rosenbrock''
