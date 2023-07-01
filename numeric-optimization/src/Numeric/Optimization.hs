@@ -906,6 +906,23 @@ instance Optionally (HasHessian (Vector Double -> Double)) where
 
 -- ------------------------------------------------------------------------
 
+instance IsProblem (Double -> Double) where
+  type Domain (Double -> Double) = Double
+  dim _ _ = 1
+  updateFromVector _ _ = (VG.! 0)
+  toVector _ = VG.singleton
+  writeToMVector _ x ret = VGM.write ret 0 x
+
+  func f = f
+
+instance Optionally (HasGrad (Double -> Double)) where
+  optionalDict = Nothing
+
+instance Optionally (HasHessian (Double -> Double)) where
+  optionalDict = Nothing
+
+-- ------------------------------------------------------------------------
+
 -- | Wrapper type for adding gradient function to a problem
 data WithGrad prob = WithGrad prob (Domain prob -> Domain prob)
 
