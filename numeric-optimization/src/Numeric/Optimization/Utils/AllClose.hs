@@ -2,7 +2,18 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-module IsClose
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Numeric.Optimization.Utils.AllClose
+-- Copyright   :  (c) Masahiro Sakai 2023
+-- License     :  BSD-style
+--
+-- Maintainer  :  masahiro.sakai@gmail.com
+-- Stability   :  provisional
+-- Portability :  non-portable
+--
+-----------------------------------------------------------------------------
+module Numeric.Optimization.Utils.AllClose
   (
   -- Tolerance type
     Tol (..)
@@ -15,9 +26,6 @@ module IsClose
 
   -- * Re-exports
   , Default (..)
-
-  -- * HUnit
-  , assertAllClose
   ) where
 
 import Data.Default.Class
@@ -30,10 +38,7 @@ import qualified Data.Vector as V
 import qualified Data.Vector.Generic as VG
 import qualified Data.Vector.Storable as VS
 import qualified Data.Vector.Unboxed as VU
-import GHC.Stack (HasCallStack)
 import qualified Numeric.LinearAlgebra as LA
-import Test.HUnit
-import Text.Printf
 
 -- ------------------------------------------------------------------------
 
@@ -132,32 +137,5 @@ instance (AllClose r v, Num v, LA.Container LA.Vector v) => AllClose r (LA.Matri
 
 instance (AllClose r v1, AllClose r v2) => AllClose r (v1, v2)  where
   allCloseRaw tol (x1,y1) (x2,y2) = allCloseRaw tol x1 x2 <> allCloseRaw tol y1 y2
-
--- ------------------------------------------------------------------------
-
--- | Assert that two objects are equal up to desired tolerance.
-assertAllClose
-  :: (HasCallStack, AllClose r a, Show r, Show a)
-  => Tol r
-  -> a -- ^ actual
-  -> a -- ^ desired
-  -> Assertion
-assertAllClose tol a b =
-  case getAp (allCloseRaw tol a b) of
-    Nothing ->
-      assertString $ unlines $ header ++ ["x and y nan location mismatch:"] ++ footer
-    Just (Sum numMismatch, Sum numTotal, Max absDiff, Max relDiff)
-      | numMismatch == 0 -> return ()
-      | otherwise ->
-          assertString $ unlines $
-            header ++
-            [ printf "Mismatched elements: %d / %d (%f%%)" numMismatch numTotal (fromIntegral numMismatch * 100 / fromIntegral numTotal :: Double)
-            , " Max absolute difference: " ++ show absDiff
-            , " Max relative difference: " ++ show relDiff
-            ] ++ footer
-   where
-     header, footer :: [String]
-     header = [printf "Not equal to tolerance rtol=%s, atol=%s" (show (rtol tol)) (show (atol tol)), ""]
-     footer = [" x: " ++ show a, " y: " ++ show b]
 
 -- ------------------------------------------------------------------------

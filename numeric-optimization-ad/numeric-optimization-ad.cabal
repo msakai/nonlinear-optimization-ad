@@ -78,7 +78,7 @@ test-suite numeric-optimization-ad-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
-      IsClose
+      AllClose
       Paths_numeric_optimization_ad
   hs-source-dirs:
       test

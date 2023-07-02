@@ -55,6 +55,7 @@ flag with-lbfgsb
 library
   exposed-modules:
       Numeric.Optimization
+      Numeric.Optimization.Utils.AllClose
       Numeric.Optimization.Utils.ToVector
   other-modules:
       Paths_numeric_optimization
@@ -114,7 +115,7 @@ test-suite numeric-optimization-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
-      IsClose
+      AllClose
       Paths_numeric_optimization
   hs-source-dirs:
       test

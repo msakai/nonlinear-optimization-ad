@@ -16,6 +16,9 @@ and this project adheres to the
 * Now we have `instance ToVector a => IsProblem (a -> Double)`, so that
   `Double -> Double`, `(Double, Double) -> Double`, `[Double] -> Double`, etc.
   are all instances of `IsProblem`.
+* Add `Numeric.Optimization.Utils.AllClose`. This module is primarily intended to
+  be used for testing in this package and its family packages.
+
 
 ## 0.1.1.0 - 2023-06-21
 

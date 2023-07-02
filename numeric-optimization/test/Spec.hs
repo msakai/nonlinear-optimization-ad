@@ -8,7 +8,7 @@ import Control.Monad
 import Data.IORef
 import Numeric.LinearAlgebra (Matrix, (><))
 import Numeric.Optimization
-import IsClose
+import AllClose
 
 
 main :: IO ()

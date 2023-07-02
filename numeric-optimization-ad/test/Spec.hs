@@ -3,7 +3,7 @@ import Test.Hspec
 import Control.Monad
 import Numeric.Optimization
 import Numeric.Optimization.AD
-import IsClose
+import AllClose
 
 
 main :: IO ()

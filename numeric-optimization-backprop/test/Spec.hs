@@ -6,7 +6,7 @@ import Control.Monad
 import Numeric.Optimization
 import Numeric.Optimization.Backprop
 import Lens.Micro
-import IsClose
+import AllClose
 
 
 main :: IO ()
