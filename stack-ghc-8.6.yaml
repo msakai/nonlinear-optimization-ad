@@ -40,6 +40,7 @@ packages:
 - nonlinear-optimization-backprop
 - numeric-optimization
 - numeric-optimization-ad
+- numeric-optimization-ad-delcont
 - numeric-optimization-backprop
 
 # Dependency packages to be pulled from upstream that are not in the resolver
@@ -51,6 +52,7 @@ extra-deps:
   commit: 700f5a2295ff8a7f2ffb1ef3e9407e2468f683b7
 - l-bfgs-b-0.1.0.1
 - numeric-limits-0.1.0.0
+- ad-delcont-0.5.0.0
 
 # Override default flag values for local packages and extra-deps
 # flags: {}
@@ -60,6 +62,8 @@ flags:
     with-lbfgsb: true
     build-examples: true
   numeric-optimization-ad:
+    build-examples: true
+  numeric-optimization-ad-delcont:
     build-examples: true
   numeric-optimization-backprop:
     build-examples: true
