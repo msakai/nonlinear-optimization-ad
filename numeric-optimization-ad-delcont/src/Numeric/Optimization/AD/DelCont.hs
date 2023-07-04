@@ -89,7 +89,7 @@ instance Traversable f => HasGrad (UsingDelCont f) where
 
   grad' (UsingDelCont f) x = DelCont.grad f x
 
-  grad'M prob@(UsingDelCont f) x gvec =
+  grad'M (UsingDelCont f) x gvec =
     case DelCont.grad f x of
       (y, g) -> do
         writeToMVector' g gvec
