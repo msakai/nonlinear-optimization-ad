@@ -22,7 +22,8 @@
 --
 -- In this module, you need to explicitly provide the function to calculate the
 -- gradient, but you can use
--- [numeric-optimization-ad](https://hackage.haskell.org/package/numeric-optimization-ad) or
+-- [numeric-optimization-ad](https://hackage.haskell.org/package/numeric-optimization-ad),
+-- [numeric-optimization-ad-delcont](https://hackage.haskell.org/package/numeric-optimization-ad-delcont), or
 -- [numeric-optimization-backprop](https://hackage.haskell.org/package/numeric-optimization-backprop)
 -- to define it using automatic differentiation.
 --
@@ -353,8 +354,9 @@ instance Exception OptimizationException
 -- >
 -- > (\(x,y) -> x**2 + y**2) `WithBounds` (fromList [(-1,1), (-2,2)])
 --
--- You can use [numeric-optimization-ad](https://hackage.haskell.org/package/numeric-optimization-ad)
--- and [numeric-optimization-backprop](https://hackage.haskell.org/package/numeric-optimization-backprop)
+-- You can use [numeric-optimization-ad](https://hackage.haskell.org/package/numeric-optimization-ad),
+-- [numeric-optimization-ad-delcont](https://hackage.haskell.org/package/numeric-optimization-ad-delcont),
+-- or [numeric-optimization-backprop](https://hackage.haskell.org/package/numeric-optimization-backprop)
 -- to avoid hand-writing functions for computing gradients and hesians.
 --
 -- If you need further flexibility, you can define instance of
