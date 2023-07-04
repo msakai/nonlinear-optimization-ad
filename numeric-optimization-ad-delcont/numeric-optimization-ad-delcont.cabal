@@ -49,10 +49,8 @@ library
       ad-delcont >=0.3.0.0
     , base >=4.12 && <5
     , data-default-class
-    , hmatrix >=0.20.0.0
     , numeric-optimization >=0.2.0.0 && <0.3.0.0
     , primitive >=0.6.4.0
-    , reflection >=2.1.5
     , vector >=0.12.0.2 && <0.14
   default-language: Haskell2010
 
@@ -86,7 +84,6 @@ test-suite numeric-optimization-ad-delcont-test
   build-depends:
       HUnit >=1.6.0.0 && <1.7
     , base >=4.12 && <5
-    , containers >=0.6.0.1 && <0.7
     , data-default-class
     , hspec >=2.7.1 && <3.0
     , numeric-optimization >=0.2.0.0 && <0.3.0.0

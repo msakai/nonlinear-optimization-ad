@@ -53,9 +53,7 @@ library:
   source-dirs: src
   dependencies:
   - ad-delcont >=0.3.0.0
-  - hmatrix >=0.20.0.0
   - primitive >=0.6.4.0
-  - reflection >=2.1.5
   - vector >=0.12.0.2 && <0.14
 
 executables:
@@ -84,7 +82,6 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - containers >=0.6.0.1 && <0.7
     - hspec >=2.7.1 && <3.0
     - HUnit >=1.6.0.0 && <1.7
     - numeric-optimization-ad-delcont
