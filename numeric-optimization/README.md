@@ -114,6 +114,7 @@ $ stack exec -- pacman -U mingw-w64-x86_64-liblbfgsb-3.0-1-any.pkg.tar.zst
 
 * Packages for using with automatic differentiation:
   * [numeric-optimization-ad](https://hackage.haskell.org/package/numeric-optimization-ad) for using with [ad](https://hackage.haskell.org/package/ad) package
+  * [numeric-optimization-delcont](https://hackage.haskell.org/package/numeric-optimization-ad-delcont) for using with [ad-delcont](https://hackage.haskell.org/package/ad-delcont) package
   * [numeric-optimization-backprop](https://hackage.haskell.org/package/numeric-optimization-backprop) for using with [backprop](https://hackage.haskell.org/package/backprop) package
 * [MIP](https://hackage.haskell.org/package/MIP) for solving linear programming and mixed-integer linear programming problems
 
