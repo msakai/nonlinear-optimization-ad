@@ -1,4 +1,3 @@
-{-# LANGUAGE FlexibleContexts #-}
 import Numeric.Optimization
 import Numeric.Optimization.AD
 

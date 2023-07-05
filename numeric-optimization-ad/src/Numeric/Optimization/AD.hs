@@ -57,7 +57,6 @@ import Numeric.Optimization
 --
 -- Example:
 --
--- > {-# LANGUAGE FlexibleContexts #-}
 -- > import Numeric.Optimization
 -- > import Numeric.Optimization.AD
 -- >
@@ -123,7 +122,6 @@ instance Optionally (HasHessian (UsingReverse f)) where
 --
 -- Example:
 --
--- > {-# LANGUAGE FlexibleContexts #-}
 -- > import Numeric.Optimization
 -- > import Numeric.Optimization.AD
 -- >

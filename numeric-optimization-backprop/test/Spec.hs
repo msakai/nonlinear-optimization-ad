@@ -1,5 +1,4 @@
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE RankNTypes #-}
 import Test.Hspec
 
 import Control.Monad
@@ -21,7 +20,7 @@ main = hspec $ do
 
 
 -- https://en.wikipedia.org/wiki/Rosenbrock_function
-rosenbrock :: forall s. Reifies s W => BVar s (Double, Double) -> BVar s Double
+rosenbrock :: Reifies s W => BVar s (Double, Double) -> BVar s Double
 rosenbrock t = sq (1 - x) + 100 * sq (y - sq x)
   where
     sq x = x ** 2
