@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE RankNTypes #-}
@@ -45,8 +46,11 @@
 module Numeric.Optimization.AD
   (
   -- * Problem specification
+#if MIN_VERSION_ad(4,5,0)
     UsingDense (..)
-  , UsingForward (..)
+  ,
+#endif
+    UsingForward (..)
   , UsingKahn (..)
   , UsingReverse (..)
   , UsingSparse (..)
@@ -54,7 +58,9 @@ module Numeric.Optimization.AD
   -- * Utilities and Re-exports
   , AD
   , auto
+#if MIN_VERSION_ad(4,5,0)
   , Dense
+#endif
   , Forward
   , Kahn
   , Reverse
@@ -74,8 +80,10 @@ import qualified Data.Vector.Generic as VG
 import qualified Data.Vector.Generic.Mutable as VGM
 import Numeric.AD (AD, auto)
 import Numeric.AD.Internal.Reverse (Tape)
+#if MIN_VERSION_ad(4,5,0)
 import Numeric.AD.Mode.Dense (Dense)
 import qualified Numeric.AD.Mode.Dense as Dense
+#endif
 import Numeric.AD.Mode.Forward (Forward)
 import qualified Numeric.AD.Mode.Forward as Forward
 import Numeric.AD.Mode.Kahn (Kahn)
@@ -88,6 +96,8 @@ import qualified Numeric.LinearAlgebra as LA
 import Numeric.Optimization
 
 -- ------------------------------------------------------------------------
+
+#if MIN_VERSION_ad(4,5,0)
 
 -- | Type for defining function and its gradient using automatic differentiation
 -- provided by "Numeric.AD.Mode.Dense".
@@ -129,6 +139,8 @@ instance Traversable f => Optionally (HasGrad (UsingDense f)) where
 
 instance Optionally (HasHessian (UsingDense f)) where
   optionalDict = Nothing
+
+#endif
 
 -- ------------------------------------------------------------------------
 
