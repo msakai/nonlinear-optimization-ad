@@ -67,6 +67,8 @@ flags:
     build-examples: true
   numeric-optimization-backprop:
     build-examples: true
+  backprop:
+    vinyl_0_14: false
 
 # Extra package databases containing global packages
 # extra-package-dbs: []
