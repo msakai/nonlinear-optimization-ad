@@ -48,8 +48,7 @@ packages:
 # extra-deps: []
 extra-deps:
 - nonlinear-optimization-0.3.12.1@sha256:2b4efff8549256c2a301d28c7c21edddab0d30a16add8b9dbb02343901bf1212,2634
-- git: https://github.com/msakai/backprop.git
-  commit: 547eff2cd083b4d0e8f02c68b268685ddc802c7a
+- backprop-0.2.6.5
 - git: https://github.com/wavewave/lbfgs-hs.git
   commit: 700f5a2295ff8a7f2ffb1ef3e9407e2468f683b7
 - l-bfgs-b-0.1.0.1
@@ -68,6 +67,8 @@ flags:
     build-examples: true
   numeric-optimization-backprop:
     build-examples: true
+  backprop:
+    vinyl_0_14: false
 
 # Extra package databases containing global packages
 # extra-package-dbs: []
