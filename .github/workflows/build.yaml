@@ -59,6 +59,9 @@ jobs:
           enable-stack: true
           stack-version: 'latest'
 
+      - name: Setup stack
+        run: stack config set system-ghc --global true
+
       - uses: actions/cache@v4
         name: Cache ~/.stack
         with:
