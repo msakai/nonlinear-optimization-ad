@@ -72,6 +72,10 @@ jobs:
       - name: Install packages (macOS)
         if: runner.os == 'macOS'
         run: brew install msakai/tap/liblbfgsb
+      - name: Add /opt/homebrew/lib as extra library directory
+        if: runner.os == 'macOS' && runner.arch == 'ARM64'
+        run: |
+          echo "extra-lib-dirs: [/opt/homebrew/lib]" >> ${{ matrix.stack_yaml }}
 
       - name: Install packages (Windows)
         if: runner.os == 'Windows'
