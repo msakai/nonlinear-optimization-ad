@@ -35,7 +35,7 @@ flags:
 
 dependencies:
 - base >=4.12 && <5
-- containers >=0.6.0.1 && <0.7
+- containers >=0.6.0.1 && <0.8
 - data-default-class >=0.1.2.0 && <0.2
 - numeric-optimization >=0.2.0.0 && <0.3.0.0
 
