@@ -1,4 +1,9 @@
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
 name: build
 jobs:
   build:
@@ -44,9 +49,9 @@ jobs:
             stack_yaml: 'stack-ghc-9.4.yaml'
             flags: ''
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - uses: haskell/actions/setup@v2
+      - uses: haskell-actions/setup@v2
         id: setup-haskell
         name: Setup Haskell
         with:
@@ -54,7 +59,10 @@ jobs:
           enable-stack: true
           stack-version: 'latest'
 
-      - uses: actions/cache@v3
+      - name: Setup stack
+        run: stack config set system-ghc --global true
+
+      - uses: actions/cache@v4
         name: Cache ~/.stack
         with:
           path: ${{ steps.setup-haskell.outputs.stack-root }}
@@ -67,6 +75,10 @@ jobs:
       - name: Install packages (macOS)
         if: runner.os == 'macOS'
         run: brew install msakai/tap/liblbfgsb
+      - name: Add /opt/homebrew/lib as extra library directory
+        if: runner.os == 'macOS' && runner.arch == 'ARM64'
+        run: |
+          echo "extra-lib-dirs: [/opt/homebrew/lib]" >> ${{ matrix.stack_yaml }}
 
       - name: Install packages (Windows)
         if: runner.os == 'Windows'
@@ -77,6 +89,10 @@ jobs:
           stack --stack-yaml ${{ matrix.stack_yaml }} exec -- pacman -Sy
           stack --stack-yaml ${{ matrix.stack_yaml }} exec -- pacman -S --needed --noconfirm ${MINGW_PACKAGE_PREFIX}-lapack
           stack --stack-yaml ${{ matrix.stack_yaml }} exec -- pacman -U --noconfirm ${MINGW_PACKAGE_PREFIX}-liblbfgsb-3.0-1-any.pkg.tar.zst
+
+      - name: Build dependencies
+        run: |
+          stack --stack-yaml ${{ matrix.stack_yaml }} build --test --no-run-tests --bench --no-run-benchmarks --only-dependencies --flag nonlinear-optimization-ad:BuildSamplePrograms --flag nonlinear-optimization-backprop:BuildSamplePrograms ${{ matrix.flags }}
 
       - name: Build
         run: |
