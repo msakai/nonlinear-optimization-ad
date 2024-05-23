@@ -9,6 +9,7 @@ and this project adheres to the
 ## 0.2.0.0 - Unreleased
 
 * Redesign API using newly introduced `Domain` type.
+* Support more AD modes: `Dense`, `Forward`, `Kahn`
 
 ## 0.1.0.1 - 2023-06-03
 
