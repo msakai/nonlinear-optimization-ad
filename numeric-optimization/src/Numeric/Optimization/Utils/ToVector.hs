@@ -39,6 +39,7 @@ module Numeric.Optimization.Utils.ToVector
   , updateFromVectorMonoTraversable
   ) where
 
+import Control.Monad
 import Control.Monad.Primitive
 import Control.Monad.State
 import qualified Data.MonoTraversable as MT

@@ -30,7 +30,7 @@ jobs:
             os: ubuntu-latest
             stack_yaml: 'stack-ghc-9.0.yaml'
             flags: ''
-          - ghc: '9.2.7'
+          - ghc: '9.2.8'
             os: ubuntu-latest
             stack_yaml: 'stack-ghc-9.2.yaml'
             flags: ''
@@ -38,15 +38,24 @@ jobs:
             os: ubuntu-latest
             stack_yaml: 'stack-ghc-9.4.yaml'
             flags: ''
+          - ghc: '9.6.5'
+            os: ubuntu-latest
+            stack_yaml: 'stack-ghc-9.6.yaml'
+            flags: ''
 
-          - ghc: '9.4.5'
+          - ghc: '9.6.5'
             os: macos-latest
             stack_yaml: 'stack-ghc-9.4.yaml'
             flags: ''
 
-          - ghc: '9.4.5'
+          - ghc: '9.6.5'
             os: windows-latest
             stack_yaml: 'stack-ghc-9.4.yaml'
+            flags: ''
+
+          - ghc: '9.8.2'
+            os: ubuntu-latest
+            stack_yaml: 'stack-ghc-9.8.yaml'
             flags: ''
     steps:
       - uses: actions/checkout@v4
