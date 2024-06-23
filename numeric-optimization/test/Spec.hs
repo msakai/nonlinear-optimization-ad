@@ -54,7 +54,7 @@ main = hspec $ do
 
       context "when given a problem with bounds" $ do
         it "should throw UnsupportedProblem" $ do
-          minimize CGDescent def (rosenbrock `WithGrad` rosenbrock' `WithBounds` [(-4,2), (-5,2)]) (-3,-4)
+          minimize CGDescent def (rosenbrock `WithGrad` rosenbrock' `WithBounds` ((-4,-5), (2,2))) (-3,-4)
             `shouldThrow` (\case { UnsupportedProblem _ -> True; _ -> False })
 
   describe "minimize LBFGS" $ do
@@ -111,7 +111,7 @@ main = hspec $ do
 
       context "when given a problem with bounds" $ do
         it "should throw UnsupportedProblem" $ do
-          minimize LBFGS def (rosenbrock `WithGrad` rosenbrock' `WithBounds` [(-4,2), (-5,2)]) (-3,-4)
+          minimize LBFGS def (rosenbrock `WithGrad` rosenbrock' `WithBounds` ((-4,-5), (2,2))) (-3,-4)
             `shouldThrow` (\case { UnsupportedProblem _ -> True; _ -> False })
 
   describe "minimize LBFGSB" $ do
@@ -151,14 +151,14 @@ main = hspec $ do
 
       context "when given rosenbrock function with bounds" $
         it "returns the global optimum" $ do
-          let prob = rosenbrock `WithGrad` rosenbrock' `WithBounds` [(-4,2), (-5,2)]
+          let prob = rosenbrock `WithGrad` rosenbrock' `WithBounds` ((-4,-5), (2,2))
           result <- minimize LBFGSB def prob (-3,-4)
           resultSuccess result `shouldBe` True
           assertAllClose (def :: Tol Double) (resultSolution result) (1,1)
 
       context "when given rosenbrock function with bounds (-infinity, +infinity)" $
         it "returns the global optimum" $ do
-          let prob = rosenbrock `WithGrad` rosenbrock' `WithBounds` boundsUnconstrained 2
+          let prob = rosenbrock `WithGrad` rosenbrock' `WithBounds` boundsUnconstrained prob (0,0)
           result <- minimize LBFGSB def prob (-3,-4)
           resultSuccess result `shouldBe` True
           assertAllClose (def :: Tol Double) (resultSolution result) (1,1)
@@ -244,7 +244,7 @@ main = hspec $ do
 
       context "when given a problem with bounds" $ do
         it "should throw UnsupportedProblem" $ do
-          minimize Newton def (rosenbrock `WithGrad` rosenbrock' `WithHessian` rosenbrock'' `WithBounds` [(-4,2), (-5,2)]) (-3,-4)
+          minimize Newton def (rosenbrock `WithGrad` rosenbrock' `WithHessian` rosenbrock'' `WithBounds` ((-4,-5), (2,2))) (-3,-4)
             `shouldThrow` (\case { UnsupportedProblem _ -> True; _ -> False })
 
 -- https://en.wikipedia.org/wiki/Rosenbrock_function

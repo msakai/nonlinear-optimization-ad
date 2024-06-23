@@ -76,7 +76,6 @@ import Data.Default.Class
 import Data.Functor.Contravariant
 import Data.IORef
 import Data.Maybe
-import qualified Data.Vector as V
 import Data.Vector.Storable (Vector)
 import qualified Data.Vector.Generic as VG
 import qualified Data.Vector.Generic.Mutable as VGM
@@ -350,9 +349,7 @@ instance Exception OptimizationException
 -- If your problem is a constrained problem. You can add constraints
 -- using the wrappers: 'WithBounds' and 'WithConstraints'. For example:
 --
--- > import Data.Vector (fromList)
--- >
--- > (\(x,y) -> x**2 + y**2) `WithBounds` (fromList [(-1,1), (-2,2)])
+-- > (\(x,y) -> x**2 + y**2) `WithBounds` ((-1,-2), (1,2))
 --
 -- You can use [numeric-optimization-ad](https://hackage.haskell.org/package/numeric-optimization-ad),
 -- [numeric-optimization-ad-delcont](https://hackage.haskell.org/package/numeric-optimization-ad-delcont),
@@ -414,7 +411,7 @@ class IsProblem prob where
 
   -- | Bounds
   --
-  bounds :: prob -> Maybe (V.Vector (Double, Double))
+  bounds :: prob -> Maybe (Domain prob, Domain prob)
   bounds _ = Nothing
 
   -- | Constraints
@@ -484,14 +481,18 @@ hasOptionalDict = Just Dict
 data Constraint
 
 -- | Bounds for unconstrained problems, i.e. (-∞,+∞).
-boundsUnconstrained :: Int -> V.Vector (Double, Double)
-boundsUnconstrained n = V.replicate n (-infinity, infinity)
+boundsUnconstrained :: IsProblem prob => prob -> Domain prob -> (Domain prob, Domain prob)
+boundsUnconstrained prob x = (lb, ub)
+  where
+    v = toVector prob x
+    lb = updateFromVector prob x $ VG.map (\_ -> -infinity) v
+    ub = updateFromVector prob x $ VG.map (\_ ->  infinity) v
 
 -- | Whether all lower bounds are -∞ and all upper bounds are +∞.
-isUnconstainedBounds :: V.Vector (Double, Double) -> Bool
-isUnconstainedBounds = V.all p
-  where
-    p (lb, ub) = isInfinite lb && lb < 0 && isInfinite ub && ub > 0
+isUnconstainedBounds :: IsProblem prob => prob -> (Domain prob, Domain prob) -> Bool
+isUnconstainedBounds prob (lb, ub) =
+  VG.all (\b -> isInfinite b && b < 0) (toVector prob lb) &&
+  VG.all (\b -> isInfinite b && b > 0) (toVector prob ub)
 
 
 -- | Minimization of scalar function of one or more variables.
@@ -769,8 +770,8 @@ minimize_LBFGSB params prob x0 = do
   let bounds' =
         case bounds prob of
           Nothing -> []
-          Just vec -> map convertB (VG.toList vec)
-      convertB (lb, ub) =
+          Just (lb, ub) -> zipWith convertB (VG.toList lb) (VG.toList ub)
+      convertB lb ub =
         ( if isInfinite lb && lb < 0
           then Nothing
           else Just lb
@@ -988,7 +989,7 @@ instance IsProblem prob => Optionally (HasHessian (WithHessian prob)) where
 -- ------------------------------------------------------------------------
 
 -- | Wrapper type for adding bounds to a problem
-data WithBounds prob = WithBounds prob (V.Vector (Double, Double))
+data WithBounds prob = WithBounds prob (Domain prob, Domain prob)
 
 instance IsProblem prob => IsProblem (WithBounds prob) where
   type Domain (WithBounds prob) = Domain prob
@@ -1071,7 +1072,10 @@ instance IsProblem prob => IsProblem (AsVectorProblem prob) where
   -- default implementation of 'writeToMVector' is what we want
 
   func (AsVectorProblem prob x0) = func prob . updateFromVector prob x0
-  bounds (AsVectorProblem prob _x0) = bounds prob
+  bounds (AsVectorProblem prob _x0) =
+    case bounds prob of
+      Nothing -> Nothing
+      Just (lb, ub) -> Just (toVector prob lb, toVector prob ub)
   constraints (AsVectorProblem prob _x0) = constraints prob
 
 instance HasGrad prob => HasGrad (AsVectorProblem prob) where
