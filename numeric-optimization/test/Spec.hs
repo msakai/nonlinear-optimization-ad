@@ -6,6 +6,7 @@ import Test.Hspec
 import Control.Exception
 import Control.Monad
 import Data.IORef
+import Data.Proxy
 import Numeric.LinearAlgebra (Matrix, (><))
 import Numeric.Optimization
 import AllClose
@@ -158,7 +159,7 @@ main = hspec $ do
 
       context "when given rosenbrock function with bounds (-infinity, +infinity)" $
         it "returns the global optimum" $ do
-          let prob = rosenbrock `WithGrad` rosenbrock' `WithBounds` boundsUnconstrained prob (0,0)
+          let prob = rosenbrock `WithGrad` rosenbrock' `WithBounds` boundsUnconstrained (Proxy :: Proxy ((Double, Double) -> Double)) (0,0)
           result <- minimize LBFGSB def prob (-3,-4)
           resultSuccess result `shouldBe` True
           assertAllClose (def :: Tol Double) (resultSolution result) (1,1)
