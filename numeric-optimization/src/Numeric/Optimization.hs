@@ -364,11 +364,31 @@ instance Exception OptimizationException
 --
 -- Laws that should be satisfied:
 --
--- * @'VS.length' . 'toVector' prob = 'dim' prob@
+-- * @'VS.length' . 'toVector' proxy = 'dim' proxy@
 --
--- * @'updateFromVector' prob a ('toVector' prob a) = a@
+-- * @'updateFromVector' proxy a ('toVector' proxy a) = a@
 --
--- * @'updateFromVector' prob ('updateFromVector' prob a v1) v2 = 'updateFromVector' prob a v2@
+-- * @'updateFromVector' proxy ('updateFromVector' proxy a v1) v2 = 'updateFromVector' proxy a v2@
+--
+-- ==== Design note
+--
+-- Note that 'Domain'-manipulation functions ('dim', 'toVector',
+-- 'writeToMVector', and 'updateFromVector') cannot be factored out to
+-- a parent class like
+--
+-- @
+-- class ToVector ('Domain' prob) => 'IsProblem' prob
+-- @
+--
+-- because how values of the domain are converted to/from vectors
+-- depends on the 'IsProblem' instance.
+--
+-- For example, @(1, 2) :: (Double, Double)@ is usually viewed as a
+-- two-dimensional vector, while
+-- [ad](https://hackage.haskell.org/package/ad) package uses
+-- 'Traversable' instance of a functor @(a,)@ and considers
+-- @(a, 2) :: (a, Double)@ as a one-dimensional vector (!), thus
+-- ad-based problem definition need to use the latter view.
 class IsProblem prob where
   -- | Type of input values and gradients
   --
@@ -412,6 +432,10 @@ class IsProblem prob where
 
   -- | Bounds
   --
+  -- The bounds are specified as a pair of the lower and upper bounds
+  -- of feasible region. For example, if the domain is 'VS.Vector' and
+  -- the feasible region is a unit cube, the bounds are
+  -- @Just ('VG.fromList' [0, 0, 0], 'VG.fromList' [1, 1 ,1])@.
   bounds :: prob -> Maybe (Domain prob, Domain prob)
   bounds _ = Nothing
 
