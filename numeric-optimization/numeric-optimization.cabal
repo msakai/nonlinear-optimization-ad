@@ -61,6 +61,7 @@ library
       Numeric.Optimization.Utils.ToVector
   other-modules:
       Numeric.Optimization.Internal.Base
+      Numeric.Optimization.Internal.Method.CGDescent
   hs-source-dirs:
       src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints

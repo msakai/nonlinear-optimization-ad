@@ -68,7 +68,6 @@ module Numeric.Optimization
 import Control.Applicative
 import Control.Exception
 import Control.Monad
-import Control.Monad.Primitive
 import Data.Coerce
 import Data.Constraint (Dict (..))
 import Data.Default.Class
@@ -84,9 +83,6 @@ import Foreign.C
 import qualified Numeric.LBFGS.Vector as LBFGS
 import qualified Numeric.LBFGS.Raw as LBFGS (unCLBFGSResult, lbfgserrCanceled)
 #endif
-#ifdef WITH_CG_DESCENT
-import qualified Numeric.Optimization.Algorithms.HagerZhang05 as CG
-#endif
 #ifdef WITH_LBFGSB
 import qualified Numeric.LBFGSB as LBFGSB
 import qualified Numeric.LBFGSB.Result as LBFGSB
@@ -94,6 +90,7 @@ import qualified Numeric.LBFGSB.Result as LBFGSB
 import Numeric.Limits
 import qualified Numeric.LinearAlgebra as LA
 import Numeric.Optimization.Internal.Base
+import qualified Numeric.Optimization.Internal.Method.CGDescent as CGDescent
 import System.IO.Unsafe
 
 
@@ -104,11 +101,7 @@ isSupportedMethod LBFGS = True
 #else
 isSupportedMethod LBFGS = False
 #endif
-#ifdef WITH_CG_DESCENT
-isSupportedMethod CGDescent = True
-#else
-isSupportedMethod CGDescent = False
-#endif
+isSupportedMethod CGDescent = CGDescent.isSupported
 #ifdef WITH_LBFGSB
 isSupportedMethod LBFGSB = True
 #else
@@ -202,12 +195,10 @@ minimizeV
   -> AsVectorProblem prob  -- ^ Optimization problem to solve
   -> Vector Double  -- ^ Initial value
   -> IO (Result (Vector Double))
-#ifdef WITH_CG_DESCENT
 minimizeV CGDescent =
   case optionalDict @(HasGrad prob) of
-    Just Dict -> minimize_CGDescent
+    Just Dict -> CGDescent.minimize
     Nothing -> \_ _ _ -> throwIO GradUnavailable
-#endif
 #ifdef WITH_LBFGS
 minimizeV LBFGS =
   case optionalDict @(HasGrad prob) of
@@ -228,85 +219,6 @@ minimizeV Newton =
         Nothing -> \_ _ _ -> throwIO HessianUnavailable
         Just Dict -> minimize_Newton
 minimizeV method = \_ _ _ -> throwIO (UnsupportedMethod method)
-
-
-#ifdef WITH_CG_DESCENT
-
-minimize_CGDescent :: HasGrad prob => Params (Vector Double) -> AsVectorProblem prob -> Vector Double -> IO (Result (Vector Double))
-minimize_CGDescent _params prob _ | not (isNothing (bounds prob)) = throwIO (UnsupportedProblem "CGDescent does not support bounds")
-minimize_CGDescent _params prob _ | not (null (constraints prob)) = throwIO (UnsupportedProblem "CGDescent does not support constraints")
-minimize_CGDescent params prob x0 = do
-  let grad_tol = fromMaybe 1e-6 $ paramsTol params
-
-      cg_params =
-        CG.defaultParameters
-        { CG.printFinal = False
-        , CG.maxItersFac =
-            case paramsMaxIters params of
-              Nothing -> CG.maxItersFac CG.defaultParameters
-              Just m -> fromIntegral m / fromIntegral (VG.length x0)
-        }
-
-      mf :: forall m. PrimMonad m => CG.PointMVector m -> m Double
-      mf mx = do
-        x <- VG.unsafeFreeze mx
-        return $ func prob x
-
-      mg :: forall m. PrimMonad m => CG.PointMVector m -> CG.GradientMVector m -> m ()
-      mg mx mret = do
-        x <- VG.unsafeFreeze mx
-        _ <- grad'M prob x mret
-        return ()
-
-      mc :: forall m. PrimMonad m => CG.PointMVector m -> CG.GradientMVector m -> m Double
-      mc mx mret = do
-        x <- VG.unsafeFreeze mx
-        grad'M prob x mret
-
-  (x, result, stat) <-
-    CG.optimize
-      cg_params
-      grad_tol
-      x0
-      (CG.MFunction mf)
-      (CG.MGradient mg)
-      (Just (CG.MCombined mc))
-
-  let (success, msg) =
-        case result of
-          CG.ToleranceStatisfied      -> (True, "convergence tolerance satisfied")
-          CG.FunctionChange           -> (True, "change in func <= feps*|f|")
-          CG.MaxTotalIter             -> (False, "total iterations exceeded maxit")
-          CG.NegativeSlope            -> (False, "slope always negative in line search")
-          CG.MaxSecantIter            -> (False, "number secant iterations exceed nsecant")
-          CG.NotDescent               -> (False, "search direction not a descent direction")
-          CG.LineSearchFailsInitial   -> (False, "line search fails in initial interval")
-          CG.LineSearchFailsBisection -> (False, "line search fails during bisection")
-          CG.LineSearchFailsUpdate    -> (False, "line search fails during interval update")
-          CG.DebugTol                 -> (False, "debugger is on and the function value increases")
-          CG.FunctionValueNaN         -> (False, "function value became nan")
-          CG.StartFunctionValueNaN    -> (False, "starting function value is nan")
-
-  return $
-    Result
-    { resultSuccess = success
-    , resultMessage = msg
-    , resultSolution = x
-    , resultValue = CG.finalValue stat
-    , resultGrad = Nothing
-    , resultHessian = Nothing
-    , resultHessianInv = Nothing
-    , resultStatistics =
-        Statistics
-        { totalIters = fromIntegral $ CG.totalIters stat
-        , funcEvals = fromIntegral $ CG.funcEvals stat
-        , gradEvals = fromIntegral $ CG.gradEvals stat
-        , hessEvals = 0
-        , hessianEvals = 0
-        }
-    }
-
-#endif
 
 
 #ifdef WITH_LBFGS

@@ -70,6 +70,7 @@ library:
   source-dirs: src
   other-modules:
   - Numeric.Optimization.Internal.Base
+  - Numeric.Optimization.Internal.Method.CGDescent
   dependencies:
   - constraints
   - containers >=0.6.0.1 && <0.8
