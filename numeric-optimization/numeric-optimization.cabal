@@ -60,7 +60,11 @@ library
       Numeric.Optimization.Utils.AllClose
       Numeric.Optimization.Utils.ToVector
   other-modules:
-      Paths_numeric_optimization
+      Numeric.Optimization.Internal.Base
+      Numeric.Optimization.Internal.Method.CGDescent
+      Numeric.Optimization.Internal.Method.LBFGS
+      Numeric.Optimization.Internal.Method.LBFGSB
+      Numeric.Optimization.Internal.Method.Newton
   hs-source-dirs:
       src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints

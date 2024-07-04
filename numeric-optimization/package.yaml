@@ -68,6 +68,12 @@ ghc-options:
 
 library:
   source-dirs: src
+  other-modules:
+  - Numeric.Optimization.Internal.Base
+  - Numeric.Optimization.Internal.Method.CGDescent
+  - Numeric.Optimization.Internal.Method.LBFGS
+  - Numeric.Optimization.Internal.Method.LBFGSB
+  - Numeric.Optimization.Internal.Method.Newton
   dependencies:
   - constraints
   - containers >=0.6.0.1 && <0.8
