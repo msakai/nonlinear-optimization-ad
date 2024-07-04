@@ -66,19 +66,16 @@ module Numeric.Optimization
   ) where
 
 import Control.Exception
-import Control.Monad
 import Data.Constraint (Dict (..))
 import Data.Default.Class
 import Data.Functor.Contravariant
-import Data.Maybe
 import Data.Proxy
 import Data.Vector.Storable (Vector)
-import qualified Data.Vector.Generic as VG
-import qualified Numeric.LinearAlgebra as LA
 import Numeric.Optimization.Internal.Base
 import qualified Numeric.Optimization.Internal.Method.CGDescent as CGDescent
 import qualified Numeric.Optimization.Internal.Method.LBFGS as LBFGS
 import qualified Numeric.Optimization.Internal.Method.LBFGSB as LBFGSB
+import qualified Numeric.Optimization.Internal.Method.LBFGSB as Newton
 
 
 -- | Whether a 'Method' is supported under the current environment.
@@ -86,7 +83,7 @@ isSupportedMethod :: Method -> Bool
 isSupportedMethod LBFGS = LBFGS.isSupported
 isSupportedMethod CGDescent = CGDescent.isSupported
 isSupportedMethod LBFGSB = LBFGSB.isSupported
-isSupportedMethod Newton = True
+isSupportedMethod Newton = Newton.isSupported
 
 
 -- $problemDefinition
@@ -192,74 +189,5 @@ minimizeV Newton =
     Just Dict ->
       case optionalDict @(HasHessian prob) of
         Nothing -> \_ _ _ -> throwIO HessianUnavailable
-        Just Dict -> minimize_Newton
+        Just Dict -> Newton.minimize
 minimizeV method = \_ _ _ -> throwIO (UnsupportedMethod method)
-
-
-minimize_Newton :: (HasGrad prob, HasHessian prob) => Params (Vector Double) -> AsVectorProblem prob -> Vector Double -> IO (Result (Vector Double))
-minimize_Newton _params prob _ | not (isNothing (bounds prob)) = throwIO (UnsupportedProblem "Newton does not support bounds")
-minimize_Newton _params prob _ | not (null (constraints prob)) = throwIO (UnsupportedProblem "Newton does not support constraints")
-minimize_Newton params prob x0 = do
-  let tol = fromMaybe 1e-6 (paramsTol params)
-
-      loop !x !y !g !h !iter = do
-        shouldStop <- msum <$> sequence
-          [ pure $ case paramsMaxIters params of
-              Just maxIter | maxIter <= iter -> Just "maximum number of iterations reached"
-              _ -> Nothing
-          , case paramsCallback params of
-              Nothing -> return Nothing
-              Just callback -> do
-                flag <- callback x
-                return $ if flag then Just "The minimization process has been canceled." else Nothing
-          ]
-        case shouldStop of
-          Just reason ->
-            return $
-              Result
-              { resultSuccess = False
-              , resultMessage = reason
-              , resultSolution = x
-              , resultValue = y
-              , resultGrad = Just g
-              , resultHessian = Just h
-              , resultHessianInv = Nothing
-              , resultStatistics =
-                  Statistics
-                  { totalIters = iter
-                  , funcEvals = iter + 1
-                  , gradEvals = iter + 1
-                  , hessEvals = iter + 1
-                  , hessianEvals = iter + 1
-                  }
-              }
-          Nothing -> do
-            let p = h LA.<\> g
-                x' = VG.zipWith (-) x p
-            if LA.norm_Inf (VG.zipWith (-) x' x) > tol then do
-              let (y', g') = grad' prob x'
-                  h' = hessian prob x'
-              loop x' y' g' h' (iter + 1)
-            else do
-              return $
-                Result
-                { resultSuccess = True
-                , resultMessage = "success"
-                , resultSolution = x
-                , resultValue = y
-                , resultGrad = Just g
-                , resultHessian = Just h
-                , resultHessianInv = Nothing
-                , resultStatistics =
-                    Statistics
-                    { totalIters = iter
-                    , funcEvals = iter + 1
-                    , gradEvals = iter + 1
-                    , hessEvals = iter + 1
-                    , hessianEvals = iter + 1
-                    }
-                }
-
-  let (y0, g0) = grad' prob x0
-      h0 = hessian prob x0
-  loop x0 y0 g0 h0 0
