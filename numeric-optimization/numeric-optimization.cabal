@@ -63,6 +63,7 @@ library
       Numeric.Optimization.Internal.Base
       Numeric.Optimization.Internal.Method.CGDescent
       Numeric.Optimization.Internal.Method.LBFGS
+      Numeric.Optimization.Internal.Method.LBFGSB
   hs-source-dirs:
       src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
