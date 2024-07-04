@@ -68,7 +68,6 @@ module Numeric.Optimization
 import Control.Applicative
 import Control.Exception
 import Control.Monad
-import Data.Coerce
 import Data.Constraint (Dict (..))
 import Data.Default.Class
 import Data.Functor.Contravariant
@@ -77,12 +76,6 @@ import Data.Maybe
 import Data.Proxy
 import Data.Vector.Storable (Vector)
 import qualified Data.Vector.Generic as VG
-import qualified Data.Vector.Storable.Mutable as VSM
-import Foreign.C
-#ifdef WITH_LBFGS
-import qualified Numeric.LBFGS.Vector as LBFGS
-import qualified Numeric.LBFGS.Raw as LBFGS (unCLBFGSResult, lbfgserrCanceled)
-#endif
 #ifdef WITH_LBFGSB
 import qualified Numeric.LBFGSB as LBFGSB
 import qualified Numeric.LBFGSB.Result as LBFGSB
@@ -91,16 +84,13 @@ import Numeric.Limits
 import qualified Numeric.LinearAlgebra as LA
 import Numeric.Optimization.Internal.Base
 import qualified Numeric.Optimization.Internal.Method.CGDescent as CGDescent
+import qualified Numeric.Optimization.Internal.Method.LBFGS as LBFGS
 import System.IO.Unsafe
 
 
 -- | Whether a 'Method' is supported under the current environment.
 isSupportedMethod :: Method -> Bool
-#ifdef WITH_LBFGS
-isSupportedMethod LBFGS = True
-#else
-isSupportedMethod LBFGS = False
-#endif
+isSupportedMethod LBFGS = LBFGS.isSupported
 isSupportedMethod CGDescent = CGDescent.isSupported
 #ifdef WITH_LBFGSB
 isSupportedMethod LBFGSB = True
@@ -199,18 +189,14 @@ minimizeV CGDescent =
   case optionalDict @(HasGrad prob) of
     Just Dict -> CGDescent.minimize
     Nothing -> \_ _ _ -> throwIO GradUnavailable
-#ifdef WITH_LBFGS
 minimizeV LBFGS =
   case optionalDict @(HasGrad prob) of
-    Just Dict -> minimize_LBFGS
+    Just Dict -> LBFGS.minimize
     Nothing -> \_ _ _ -> throwIO GradUnavailable
-#endif
-#ifdef WITH_LBFGSB
 minimizeV LBFGSB =
   case optionalDict @(HasGrad prob) of
     Just Dict -> minimize_LBFGSB
     Nothing -> \_ _ _ -> throwIO GradUnavailable
-#endif
 minimizeV Newton =
   case optionalDict @(HasGrad prob) of
     Nothing -> \_ _ _ -> throwIO GradUnavailable
@@ -219,117 +205,6 @@ minimizeV Newton =
         Nothing -> \_ _ _ -> throwIO HessianUnavailable
         Just Dict -> minimize_Newton
 minimizeV method = \_ _ _ -> throwIO (UnsupportedMethod method)
-
-
-#ifdef WITH_LBFGS
-
-minimize_LBFGS :: HasGrad prob => Params (Vector Double) -> AsVectorProblem prob -> Vector Double -> IO (Result (Vector Double))
-minimize_LBFGS _params prob _ | not (isNothing (bounds prob)) = throwIO (UnsupportedProblem "LBFGS does not support bounds")
-minimize_LBFGS _params prob _ | not (null (constraints prob)) = throwIO (UnsupportedProblem "LBFGS does not support constraints")
-minimize_LBFGS params prob x0 = do
-  evalCounter <- newIORef (0::Int)
-  iterRef <- newIORef (0::Int)
-
-  let lbfgsParams =
-        LBFGS.LBFGSParameters
-        { LBFGS.lbfgsPast = paramsPast params
-        , LBFGS.lbfgsDelta = fromMaybe 1e-5 $ paramsFTol params <|> paramsTol params
-        , LBFGS.lbfgsLineSearch = LBFGS.DefaultLineSearch
-        , LBFGS.lbfgsL1NormCoefficient = Nothing
-        }
-
-      instanceData :: ()
-      instanceData = ()
-
-      evalFun :: () -> VSM.IOVector CDouble -> VSM.IOVector CDouble -> CInt -> CDouble -> IO CDouble
-      evalFun _inst xvec gvec _n _step = do
-        modifyIORef' evalCounter (+1)
-#if MIN_VERSION_vector(0,13,0)
-        x <- VG.unsafeFreeze (VSM.unsafeCoerceMVector xvec :: VSM.IOVector Double)
-        y <- grad'M prob x (VSM.unsafeCoerceMVector gvec :: VSM.IOVector Double)
-#else
-        x <- VG.unsafeFreeze (coerce xvec :: VSM.IOVector Double)
-        y <- grad'M prob x (coerce gvec :: VSM.IOVector Double)
-#endif
-        return (coerce y)
-
-      progressFun :: () -> VSM.IOVector CDouble -> VSM.IOVector CDouble -> CDouble -> CDouble -> CDouble -> CDouble -> CInt -> CInt -> CInt -> IO CInt
-      progressFun _inst xvec _gvec _fx _xnorm _gnorm _step _n iter _nev = do
-        writeIORef iterRef $! fromIntegral iter
-        shouldStop <-
-          case paramsCallback params of
-            Nothing -> return False
-            Just callback -> do
-#if MIN_VERSION_vector(0,13,0)
-              x <- VG.freeze (VSM.unsafeCoerceMVector xvec :: VSM.IOVector Double)
-#else
-              x <- VG.freeze (coerce xvec :: VSM.IOVector Double)
-#endif
-              callback x
-        return $ if shouldStop then LBFGS.unCLBFGSResult LBFGS.lbfgserrCanceled else 0
-
-  (result, x_) <- LBFGS.lbfgs lbfgsParams evalFun progressFun instanceData (VG.toList x0)
-  let x = VG.fromList x_
-      (success, msg) =
-        case result of
-          LBFGS.Success                -> (True,  "Success")
-          LBFGS.Stop                   -> (True,  "Stop")
-          LBFGS.AlreadyMinimized       -> (True,  "The initial variables already minimize the objective function.")
-          LBFGS.UnknownError           -> (False, "Unknown error.")
-          LBFGS.LogicError             -> (False, "Logic error.")
-          LBFGS.OutOfMemory            -> (False, "Insufficient memory.")
-          LBFGS.Canceled               -> (False, "The minimization process has been canceled.")
-          LBFGS.InvalidN               -> (False, "Invalid number of variables specified.")
-          LBFGS.InvalidNSSE            -> (False, "Invalid number of variables (for SSE) specified.")
-          LBFGS.InvalidXSSE            -> (False, "The array x must be aligned to 16 (for SSE).")
-          LBFGS.InvalidEpsilon         -> (False, "Invalid parameter lbfgs_parameter_t::epsilon specified.")
-          LBFGS.InvalidTestPeriod      -> (False, "Invalid parameter lbfgs_parameter_t::past specified.")
-          LBFGS.InvalidDelta           -> (False, "Invalid parameter lbfgs_parameter_t::delta specified.")
-          LBFGS.InvalidLineSearch      -> (False, "Invalid parameter lbfgs_parameter_t::linesearch specified.")
-          LBFGS.InvalidMinStep         -> (False, "Invalid parameter lbfgs_parameter_t::max_step specified.")
-          LBFGS.InvalidMaxStep         -> (False, "Invalid parameter lbfgs_parameter_t::max_step specified.")
-          LBFGS.InvalidFtol            -> (False, "Invalid parameter lbfgs_parameter_t::ftol specified.")
-          LBFGS.InvalidWolfe           -> (False, "Invalid parameter lbfgs_parameter_t::wolfe specified.")
-          LBFGS.InvalidGtol            -> (False, "Invalid parameter lbfgs_parameter_t::gtol specified.")
-          LBFGS.InvalidXtol            -> (False, "Invalid parameter lbfgs_parameter_t::xtol specified.")
-          LBFGS.InvalidMaxLineSearch   -> (False, "Invalid parameter lbfgs_parameter_t::max_linesearch specified.")
-          LBFGS.InvalidOrthantwise     -> (False, "Invalid parameter lbfgs_parameter_t::orthantwise_c specified.")
-          LBFGS.InvalidOrthantwiseStart-> (False, "Invalid parameter lbfgs_parameter_t::orthantwise_start specified.")
-          LBFGS.InvalidOrthantwiseEnd  -> (False, "Invalid parameter lbfgs_parameter_t::orthantwise_end specified.")
-          LBFGS.OutOfInterval          -> (False, "The line-search step went out of the interval of uncertainty.")
-          LBFGS.IncorrectTMinMax       -> (False, "A logic error occurred; alternatively, the interval of uncertainty became too small.")
-          LBFGS.RoundingError          -> (False, "A rounding error occurred; alternatively, no line-search step satisfies the sufficient decrease and curvature conditions.")
-          LBFGS.MinimumStep            -> (False, "The line-search step became smaller than lbfgs_parameter_t::min_step.")
-          LBFGS.MaximumStep            -> (False, "The line-search step became larger than lbfgs_parameter_t::max_step.")
-          LBFGS.MaximumLineSearch      -> (False, "The line-search routine reaches the maximum number of evaluations.")
-          LBFGS.MaximumIteration       -> (False, "The algorithm routine reaches the maximum number of iterations.")
-          LBFGS.WidthTooSmall          -> (False, "Relative width of the interval of uncertainty is at most lbfgs_parameter_t::xtol.")
-          LBFGS.InvalidParameters      -> (False, "A logic error (negative line-search step) occurred.")
-          LBFGS.IncreaseGradient       -> (False, "The current search direction increases the objective function value.")
-
-  iters <- readIORef iterRef
-  nEvals <- readIORef evalCounter
-
-  return $
-    Result
-    { resultSuccess = success
-    , resultMessage = msg
-    , resultSolution = x
-    , resultValue = func prob x
-    , resultGrad = Nothing
-    , resultHessian = Nothing
-    , resultHessianInv = Nothing
-    , resultStatistics =
-        Statistics
-        { totalIters = iters
-        , funcEvals = nEvals + 1  -- +1 is for computing 'resultValue'
-        , gradEvals = nEvals
-        , hessEvals = 0
-        , hessianEvals = 0
-        }
-    }
-
-#endif
 
 
 #ifdef WITH_LBFGSB
