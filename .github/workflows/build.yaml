@@ -38,19 +38,19 @@ jobs:
             os: ubuntu-latest
             stack_yaml: 'stack-ghc-9.4.yaml'
             flags: ''
-          - ghc: '9.6.5'
+          - ghc: '9.6.6'
             os: ubuntu-latest
             stack_yaml: 'stack-ghc-9.6.yaml'
             flags: ''
 
-          - ghc: '9.6.5'
+          - ghc: '9.6.6'
             os: macos-latest
-            stack_yaml: 'stack-ghc-9.4.yaml'
+            stack_yaml: 'stack-ghc-9.6.yaml'
             flags: ''
 
-          - ghc: '9.6.5'
+          - ghc: '9.6.6'
             os: windows-latest
-            stack_yaml: 'stack-ghc-9.4.yaml'
+            stack_yaml: 'stack-ghc-9.6.yaml'
             flags: ''
 
           - ghc: '9.8.2'
