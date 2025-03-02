@@ -72,7 +72,7 @@ library
       base >=4.12 && <5
     , constraints
     , containers >=0.6.0.1 && <0.8
-    , data-default-class >=0.1.2.0 && <0.2
+    , data-default-class >=0.1.2.0 && <0.3
     , hmatrix >=0.20.0.0
     , mono-traversable >=1.0.15.1 && <1.1
     , mtl >=2.2.2 && <2.4
@@ -108,7 +108,7 @@ executable rosenbrock
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.12 && <5
-    , data-default-class >=0.1.2.0 && <0.2
+    , data-default-class >=0.1.2.0 && <0.3
     , numeric-optimization
     , vector >=0.12.0.2 && <0.14
   default-language: Haskell2010
@@ -130,7 +130,7 @@ test-suite numeric-optimization-test
       HUnit >=1.6.0.0 && <1.7
     , base >=4.12 && <5
     , containers >=0.6.0.1 && <0.8
-    , data-default-class >=0.1.2.0 && <0.2
+    , data-default-class >=0.1.2.0 && <0.3
     , hmatrix
     , hspec >=2.7.1 && <3.0
     , numeric-optimization
