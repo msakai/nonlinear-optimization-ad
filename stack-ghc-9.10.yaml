@@ -15,7 +15,7 @@
 # resolver:
 #  name: custom-snapshot
 #  location: "./custom-snapshot.yaml"
-resolver: lts-22.43
+resolver: lts-23.10
 
 # User packages to be built.
 # Various formats can be used as shown in the example below.
@@ -47,8 +47,8 @@ packages:
 # (e.g., acme-missiles-0.3)
 # extra-deps: []
 extra-deps:
-- git: https://github.com/msakai/nonlinear-optimization.git
-  commit: 3d1bc729df511ed7c6635a23fb191aef313e4583
+- git: https://github.com/meteficha/nonlinear-optimization.git
+  commit: 077a300f4d95cd76d191aa44422813f3dc1f452f
 - backprop-0.2.6.5
 - git: https://github.com/wavewave/lbfgs-hs.git
   commit: 700f5a2295ff8a7f2ffb1ef3e9407e2468f683b7
@@ -57,6 +57,17 @@ extra-deps:
 
 # Override default flag values for local packages and extra-deps
 # flags: {}
+flags:
+  numeric-optimization:
+    with-cg-descent: true
+    with-lbfgsb: true
+    build-examples: true
+  numeric-optimization-ad:
+    build-examples: true
+  numeric-optimization-ad-delcont:
+    build-examples: true
+  numeric-optimization-backprop:
+    build-examples: true
 
 # Extra package databases containing global packages
 # extra-package-dbs: []

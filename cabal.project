@@ -11,5 +11,5 @@ source-repository-package
 
 source-repository-package
     type: git
-    location: https://github.com/msakai/nonlinear-optimization.git
-    tag: 3d1bc729df511ed7c6635a23fb191aef313e4583
+    location: https://github.com/meteficha/nonlinear-optimization.git
+    tag: 077a300f4d95cd76d191aa44422813f3dc1f452f

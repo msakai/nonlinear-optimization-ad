@@ -24,8 +24,7 @@ jobs:
           - ghc: '8.10.7'
             os: ubuntu-latest
             stack_yaml: 'stack-ghc-8.10.yaml'
-            coveralls: true
-            flags: '--coverage'
+            flags: ''
           - ghc: '9.0.2'
             os: ubuntu-latest
             stack_yaml: 'stack-ghc-9.0.yaml'
@@ -34,10 +33,11 @@ jobs:
             os: ubuntu-latest
             stack_yaml: 'stack-ghc-9.2.yaml'
             flags: ''
-          - ghc: '9.4.5'
+          - ghc: '9.4.8'
             os: ubuntu-latest
             stack_yaml: 'stack-ghc-9.4.yaml'
-            flags: ''
+            coveralls: true
+            flags: '--coverage'
           - ghc: '9.6.6'
             os: ubuntu-latest
             stack_yaml: 'stack-ghc-9.6.yaml'
@@ -53,9 +53,13 @@ jobs:
             stack_yaml: 'stack-ghc-9.6.yaml'
             flags: ''
 
-          - ghc: '9.8.2'
+          - ghc: '9.8.4'
             os: ubuntu-latest
             stack_yaml: 'stack-ghc-9.8.yaml'
+            flags: ''
+          - ghc: '9.10.1'
+            os: ubuntu-latest
+            stack_yaml: 'stack-ghc-9.10.yaml'
             flags: ''
     steps:
       - uses: actions/checkout@v4
@@ -82,7 +86,7 @@ jobs:
 
       - name: Install packages (Linux)
         if: runner.os == 'Linux'
-        run: sudo apt-get install liblbfgsb-dev
+        run: sudo apt-get install libblas-dev liblapack-dev liblbfgsb-dev
 
       - name: Install packages (macOS)
         if: runner.os == 'macOS'
