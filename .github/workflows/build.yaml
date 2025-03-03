@@ -86,7 +86,7 @@ jobs:
 
       - name: Install packages (Linux)
         if: runner.os == 'Linux'
-        run: sudo apt-get install liblbfgsb-dev
+        run: sudo apt-get install libblas-dev liblapack-dev liblbfgsb-dev
 
       - name: Install packages (macOS)
         if: runner.os == 'macOS'
