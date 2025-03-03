@@ -24,8 +24,7 @@ jobs:
           - ghc: '8.10.7'
             os: ubuntu-latest
             stack_yaml: 'stack-ghc-8.10.yaml'
-            coveralls: true
-            flags: '--coverage'
+            flags: ''
           - ghc: '9.0.2'
             os: ubuntu-latest
             stack_yaml: 'stack-ghc-9.0.yaml'
@@ -37,7 +36,8 @@ jobs:
           - ghc: '9.4.8'
             os: ubuntu-latest
             stack_yaml: 'stack-ghc-9.4.yaml'
-            flags: ''
+            coveralls: true
+            flags: '--coverage'
           - ghc: '9.6.6'
             os: ubuntu-latest
             stack_yaml: 'stack-ghc-9.6.yaml'
